@@ -40,7 +40,8 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 func shop(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /shop")
+		err := tmpl.ExecuteTemplate(w, "shop.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /shop")
 	} else {
@@ -50,7 +51,8 @@ func shop(w http.ResponseWriter, r *http.Request) {
 
 func cart(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /cart")
+		err := tmpl.ExecuteTemplate(w, "cart.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /cart")
 	} else {
@@ -60,7 +62,8 @@ func cart(w http.ResponseWriter, r *http.Request) {
 
 func checkout(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /checkout")
+		err := tmpl.ExecuteTemplate(w, "checkout.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /checkout")
 	} else {
@@ -70,7 +73,8 @@ func checkout(w http.ResponseWriter, r *http.Request) {
 
 func blog(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /blog")
+		err := tmpl.ExecuteTemplate(w, "blog.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /blog")
 	} else {
@@ -80,7 +84,8 @@ func blog(w http.ResponseWriter, r *http.Request) {
 
 func contact(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /contact")
+		err := tmpl.ExecuteTemplate(w, "contact.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /contact")
 	} else {
