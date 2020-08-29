@@ -1,9 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"text/template"
 )
+
+var tmpl *template.Template
+
+func init() {
+	tmpl = template.Must(template.ParseGlob("templates/*.gohtml"))
+}
 
 func main() {
 	http.HandleFunc("/", home)
@@ -12,13 +21,16 @@ func main() {
 	http.HandleFunc("/checkout", checkout)
 	http.HandleFunc("/blog", blog)
 	http.HandleFunc("/contact", contact)
+	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./resources"))))
 
+	fmt.Println("Server running...")
 	http.ListenAndServe(":8080", nil)
 }
 
 func home(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
-		io.WriteString(w, "GET /")
+		err := tmpl.ExecuteTemplate(w, "index.gohtml", nil)
+		handleError(w, err)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /")
 	} else {
@@ -73,5 +85,12 @@ func contact(w http.ResponseWriter, r *http.Request) {
 		io.WriteString(w, "POST /contact")
 	} else {
 		http.Error(w, "405 method not allowed", 405)
+	}
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Fatalln(err)
 	}
 }
