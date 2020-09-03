@@ -1,14 +1,29 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
+
+	_ "github.com/lib/pq"
 )
 
 func main() {
+	db, err := sql.Open("postgres", "postgres://username:yourpassword@localhost/yourdb?sslmode=disable")
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("You connected to your database.")
+
 	http.HandleFunc("/", home)
 	http.HandleFunc("/shop", shop)
 	http.HandleFunc("/cart", cart)
