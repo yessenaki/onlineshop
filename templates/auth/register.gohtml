@@ -7,10 +7,11 @@
                 <div class="col-lg-4 offset-lg-4 col-md-4 offset-md-4 text-center">
                     <div class="login__form">
                         <h5>Register</h5>
-                        <form action="#">
-                            <input type="text" placeholder="Name">
-                            <input type="email" placeholder="Email">
-                            <input type="password" placeholder="Password">
+                        <form action="/register" method="POST">
+                            <input type="text" name="first_name" placeholder="First Name">
+                            <input type="text" name="last_name" placeholder="Last Name">
+                            <input type="email" name="email" placeholder="Email">
+                            <input type="password" name="password" placeholder="Password">
                             <input type="password" placeholder="Confirm Password">
                             <button type="submit" class="site-btn">Create Account</button>
                         </form>

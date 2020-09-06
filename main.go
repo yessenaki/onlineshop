@@ -1,28 +1,19 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
+	"onlineshop/app/user"
+	"onlineshop/config"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := sql.Open("postgres", "postgres://username:yourpassword@localhost/yourdb?sslmode=disable")
-	if err != nil {
-		panic(err)
-	}
-	defer db.Close()
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("You connected to your database.")
+	config.InitDB("postgres://postgres:postgres@localhost/onlineshop?sslmode=disable")
 
 	http.HandleFunc("/", home)
 	http.HandleFunc("/shop", shop)
@@ -31,7 +22,7 @@ func main() {
 	http.HandleFunc("/blog", blog)
 	http.HandleFunc("/contact", contact)
 	http.HandleFunc("/login", login)
-	http.HandleFunc("/register", register)
+	http.HandleFunc("/register", user.Register)
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
 
 	fmt.Println("Server running...")
@@ -134,21 +125,6 @@ func login(w http.ResponseWriter, r *http.Request) {
 		var path = map[string]string{
 			"folder": "auth",
 			"file":   "login.gohtml",
-		}
-		renderTemplate(w, path, ctx)
-	} else if r.Method == http.MethodPost {
-		io.WriteString(w, "POST /login")
-	} else {
-		http.Error(w, "405 method not allowed", 405)
-	}
-}
-
-func register(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		var ctx interface{} = "Register Page"
-		var path = map[string]string{
-			"folder": "auth",
-			"file":   "register.gohtml",
 		}
 		renderTemplate(w, path, ctx)
 	} else if r.Method == http.MethodPost {
