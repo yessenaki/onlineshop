@@ -8,6 +8,71 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// Login handler
+func Login(w http.ResponseWriter, r *http.Request) {
+	var ctx interface{}
+	var path = map[string]string{
+		"folder": "auth",
+		"file":   "login.gohtml",
+	}
+
+	if r.Method == http.MethodGet {
+		// Check if session already exists
+		result, err := sessionExists(r)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+		if result {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
+	} else if r.Method == http.MethodPost {
+		email := r.FormValue("email")
+		password := r.FormValue("password")
+
+		u, err := userExists(email)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+		if u == (User{}) {
+			http.Error(w, "Email and/or password do not match", http.StatusForbidden)
+			return
+		}
+
+		// Does the entered password match the stored password?
+		err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+		if err != nil {
+			http.Error(w, "Email and/or password do not match", http.StatusForbidden)
+			return
+		}
+
+		// Generate a new uuid && create a new session in the db
+		sessionID, _ := uuid.NewV4()
+		err = createSession(sessionID.String(), u.ID)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		// Create a new session in the browser cookie
+		cookie := &http.Cookie{
+			Name:  "session_id",
+			Value: sessionID.String(),
+		}
+		http.SetCookie(w, cookie)
+
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	} else {
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+	}
+
+	helper.RenderTemplate(w, path, ctx)
+}
+
+// Register handler
 func Register(w http.ResponseWriter, r *http.Request) {
 	var ctx interface{}
 	var tplPath = map[string]string{
@@ -16,7 +81,13 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		if sessionExists(r) {
+		// Check if session already exists
+		result, err := sessionExists(r)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+		if result {
 			http.Redirect(w, r, "/", http.StatusSeeOther)
 			return
 		}
@@ -28,12 +99,12 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 
 		// Check if user already exists
-		result, err := userExists(user.Email)
+		u, err := userExists(user.Email)
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
 		}
-		if result {
+		if u != (User{}) {
 			http.Error(w, "Email already taken", http.StatusForbidden)
 			return
 		}
@@ -75,18 +146,4 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	helper.RenderTemplate(w, tplPath, ctx)
-}
-
-func sessionExists(r *http.Request) bool {
-	// c, err := r.Cookie("session_id")
-	// if err != nil {
-	// 	return false
-	// }
-
-	// row, err := config.DB.Query("SELECT sessions.session_id, users.id FROM sessions INNER JOIN users ON sessions.user_id = users.id LIMIT 1")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// defer rows.Close()
-	return false
 }

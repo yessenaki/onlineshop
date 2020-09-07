@@ -3077,6 +3077,7 @@ ol {
 	width: 100%;
 	padding-left: 20px;
 	font-size: 14px;
+	font-weight: 500;
 	color: #444444;
 	border: 1px solid #888888;
 	border-radius: 10px;
@@ -3168,6 +3169,7 @@ ol {
 	width: 100%;
 	padding-left: 20px;
 	font-size: 14px;
+	font-weight: 500;
 	color: #444444;
 	border: 1px solid #888;
 	border-radius: 10px;

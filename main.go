@@ -21,7 +21,7 @@ func main() {
 	http.HandleFunc("/checkout", checkout)
 	http.HandleFunc("/blog", blog)
 	http.HandleFunc("/contact", contact)
-	http.HandleFunc("/login", login)
+	http.HandleFunc("/login", user.Login)
 	http.HandleFunc("/register", user.Register)
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
 
@@ -114,21 +114,6 @@ func contact(w http.ResponseWriter, r *http.Request) {
 		renderTemplate(w, path, ctx)
 	} else if r.Method == http.MethodPost {
 		io.WriteString(w, "POST /contact")
-	} else {
-		http.Error(w, "405 method not allowed", 405)
-	}
-}
-
-func login(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		var ctx interface{} = "Login Page"
-		var path = map[string]string{
-			"folder": "auth",
-			"file":   "login.gohtml",
-		}
-		renderTemplate(w, path, ctx)
-	} else if r.Method == http.MethodPost {
-		io.WriteString(w, "POST /login")
 	} else {
 		http.Error(w, "405 method not allowed", 405)
 	}
