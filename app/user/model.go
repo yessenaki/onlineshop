@@ -19,7 +19,7 @@ type User struct {
 
 func createUser(user User) (int, error) {
 	var lastInsertID int
-	sqlStatement := "INSERT INTO users (first_name, last_name, email, password) VALUES ($1, $2, $3, $4) RETURNING id"
+	sqlStatement := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
 	err := config.DB.QueryRow(sqlStatement, user.FirstName, user.LastName, user.Email, user.Password).Scan(&lastInsertID)
 	if err != nil {
 		return 0, err
@@ -46,7 +46,8 @@ func createSession(sessionID string, userID int) error {
 		return err
 	}
 
-	_, err = config.DB.Exec("INSERT INTO sessions (session_id, user_id) VALUES ($1, $2)", sessionID, userID)
+	sqlStatement := "INSERT INTO sessions (session_id, user_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0))"
+	_, err = config.DB.Exec(sqlStatement, sessionID, userID)
 	if err != nil {
 		return err
 	}
