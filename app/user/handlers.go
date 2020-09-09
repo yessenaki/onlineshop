@@ -3,6 +3,8 @@ package user
 import (
 	"net/http"
 	"onlineshop/helper"
+	"regexp"
+	"strings"
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
@@ -11,46 +13,55 @@ import (
 // Login handler
 func Login(w http.ResponseWriter, r *http.Request) {
 	var ctx interface{}
-	var path = map[string]string{
+	var tplPath = map[string]string{
 		"folder": "auth",
 		"file":   "login.gohtml",
 	}
 
 	if r.Method == http.MethodGet {
 		// Check if session already exists
-		result, err := sessionExists(r)
-		if err != nil {
-			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			return
-		}
-		if result {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
+		checkSession(w, r)
 	} else if r.Method == http.MethodPost {
-		email := r.FormValue("email")
-		password := r.FormValue("password")
+		user := &User{
+			Email: r.PostFormValue("email"),
+		}
+		password := r.PostFormValue("password")
 
-		u, err := userExists(email)
+		// Form validation
+		vld := &Validator{
+			User:   user,
+			Errors: map[string]string{},
+		}
+		match := regexp.MustCompile(".+@.+\\..+").Match([]byte(user.Email))
+		if match == false {
+			vld.Errors["Email"] = "Please enter a valid email address"
+			helper.RenderTemplate(w, tplPath, vld)
+			return
+		}
+
+		result, err := user.exists()
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
 		}
-		if u == (User{}) {
-			http.Error(w, "Email and/or password do not match", http.StatusForbidden)
+		if result == false {
+			vld.Errors["Email"] = "User not found with this email address"
+			helper.RenderTemplate(w, tplPath, vld)
 			return
 		}
 
 		// Does the entered password match the stored password?
-		err = bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(password))
+		err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 		if err != nil {
-			http.Error(w, "Email and/or password do not match", http.StatusForbidden)
+			user.Password = password
+			vld.Errors["Password"] = "Password does not match, please try again"
+			helper.RenderTemplate(w, tplPath, vld)
 			return
 		}
 
 		// Generate a new uuid && create a new session in the db
 		sessionID, _ := uuid.NewV4()
-		err = createSession(sessionID.String(), u.ID)
+		err = createSession(sessionID.String(), user.ID)
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
@@ -69,7 +80,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 	}
 
-	helper.RenderTemplate(w, path, ctx)
+	helper.RenderTemplate(w, tplPath, ctx)
 }
 
 // Register handler
@@ -82,43 +93,45 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		// Check if session already exists
-		result, err := sessionExists(r)
+		checkSession(w, r)
+	} else if r.Method == http.MethodPost {
+		user := &User{
+			FirstName: r.PostFormValue("first_name"),
+			LastName:  r.PostFormValue("last_name"),
+			Email:     r.PostFormValue("email"),
+			Password:  r.PostFormValue("password"),
+		}
+		passwordConfirm := r.PostFormValue("password_confirm")
+
+		// Form validation
+		vld := &Validator{User: user}
+		if vld.validate(passwordConfirm) == false {
+			helper.RenderTemplate(w, tplPath, vld)
+			return
+		}
+
+		// Check if user already exists
+		result, err := user.exists()
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
 		}
 		if result {
-			http.Redirect(w, r, "/", http.StatusSeeOther)
-			return
-		}
-	} else if r.Method == http.MethodPost {
-		user := User{}
-		user.FirstName = r.FormValue("first_name")
-		user.LastName = r.FormValue("last_name")
-		user.Email = r.FormValue("email")
-		password := r.FormValue("password")
-
-		// Check if user already exists
-		u, err := userExists(user.Email)
-		if err != nil {
-			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			return
-		}
-		if u != (User{}) {
-			http.Error(w, "Email already taken", http.StatusForbidden)
+			vld.Errors["Email"] = "The email address is already taken. Please choose another one"
+			helper.RenderTemplate(w, tplPath, vld)
 			return
 		}
 
 		// Encrypt password with bcrypt
-		ps, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+		passwordSlice, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.MinCost)
 		if err != nil {
 			http.Error(w, http.StatusText(500), 500)
 			return
 		}
-		user.Password = string(ps)
+		user.Password = string(passwordSlice)
 
 		// Create a new user
-		userID, err := createUser(user)
+		userID, err := user.createUser()
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
@@ -143,7 +156,52 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
 	}
 
 	helper.RenderTemplate(w, tplPath, ctx)
+}
+
+func checkSession(w http.ResponseWriter, r *http.Request) {
+	result, err := sessionExists(r)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+	if result {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+		return
+	}
+}
+
+func (vld *Validator) validate(passwordConfirm string) bool {
+	vld.Errors = map[string]string{}
+	firstName := strings.TrimSpace(vld.User.FirstName)
+	lastName := strings.TrimSpace(vld.User.LastName)
+	email := strings.TrimSpace(vld.User.Email)
+	password := strings.TrimSpace(vld.User.Password)
+	passwordConfirm = strings.TrimSpace(passwordConfirm)
+
+	if firstName == "" || len(firstName) > 20 {
+		vld.Errors["FirstName"] = "The field First Name must be a string with a maximum length of 20"
+	}
+
+	if lastName == "" || len(lastName) > 20 {
+		vld.Errors["LastName"] = "The field Last Name must be a string with a maximum length of 20"
+	}
+
+	match := regexp.MustCompile(".+@.+\\..+").Match([]byte(email))
+	if match == false {
+		vld.Errors["Email"] = "Please enter a valid email address"
+	}
+
+	if len(password) < 6 || len(password) > 20 {
+		vld.Errors["Password"] = "Your password must be 6-12 characters long"
+	}
+
+	if password != passwordConfirm {
+		vld.Errors["PasswordConfirm"] = "The specified passwords do not match"
+	}
+
+	return len(vld.Errors) == 0
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"io"
 	"log"
@@ -25,8 +24,11 @@ func main() {
 	http.HandleFunc("/register", user.Register)
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
 
-	fmt.Println("Server running...")
-	http.ListenAndServe(":8080", nil)
+	log.Println("Server running...")
+	err := http.ListenAndServe(":8080", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func home(w http.ResponseWriter, r *http.Request) {

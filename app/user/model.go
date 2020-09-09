@@ -17,27 +17,32 @@ type User struct {
 	UpdatedAt string `db:"updated_at"`
 }
 
-func createUser(user User) (int, error) {
+// Validator struct
+type Validator struct {
+	User   *User
+	Errors map[string]string
+}
+
+func (u *User) createUser() (int, error) {
 	var lastInsertID int
 	sqlStatement := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, user.FirstName, user.LastName, user.Email, user.Password).Scan(&lastInsertID)
+	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&lastInsertID)
 	if err != nil {
 		return 0, err
 	}
 	return lastInsertID, nil
 }
 
-func userExists(email string) (User, error) {
-	user := User{}
-	row := config.DB.QueryRow("SELECT id, email, password FROM users WHERE email = $1", email)
-	err := row.Scan(&user.ID, &user.Email, &user.Password)
+func (u *User) exists() (bool, error) {
+	row := config.DB.QueryRow("SELECT id, password FROM users WHERE email = $1", u.Email)
+	err := row.Scan(&u.ID, &u.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return user, nil
+			return false, nil
 		}
-		return user, err
+		return false, err
 	}
-	return user, nil
+	return true, nil
 }
 
 func createSession(sessionID string, userID int) error {

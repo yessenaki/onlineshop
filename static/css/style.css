@@ -3176,6 +3176,19 @@ ol {
 	margin-bottom: 20px;
 }
 
+.login__form form input.vld-error,
+.register__form form input.vld-error {
+	margin-bottom: 10px;
+	border-color: #dc3545;
+}
+
+p.vld-error {
+	text-align: left;
+	color: #dc3545;
+	font-weight: 500;
+	line-height: initial;
+}
+
 .login__form form input::-webkit-input-placeholder,
 .register__form form input::-webkit-input-placeholder {
 	color: #444444;
