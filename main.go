@@ -21,6 +21,7 @@ func main() {
 	http.HandleFunc("/blog", blog)
 	http.HandleFunc("/contact", contact)
 	http.HandleFunc("/login", user.Login)
+	http.HandleFunc("/logout", user.Logout)
 	http.HandleFunc("/register", user.Register)
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
 

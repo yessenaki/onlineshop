@@ -19,8 +19,15 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		// Check if session already exists
-		checkSession(w, r)
+		result, err := sessionExists(r)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+		if result {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
 	} else if r.Method == http.MethodPost {
 		user := &User{
 			Email: r.PostFormValue("email"),
@@ -93,7 +100,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		// Check if session already exists
-		checkSession(w, r)
+		result, err := sessionExists(r)
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+		if result {
+			http.Redirect(w, r, "/", http.StatusSeeOther)
+			return
+		}
 	} else if r.Method == http.MethodPost {
 		user := &User{
 			FirstName: r.PostFormValue("first_name"),
@@ -162,16 +177,35 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	helper.RenderTemplate(w, tplPath, ctx)
 }
 
-func checkSession(w http.ResponseWriter, r *http.Request) {
+// Logout handler
+func Logout(w http.ResponseWriter, r *http.Request) {
 	result, err := sessionExists(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	if result {
+	if result == false {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
+
+	// Delete the session from db
+	cookie, _ := r.Cookie("session_id")
+	err = deleteSession(cookie.Value)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	// Remove the cookie from browser
+	cookie = &http.Cookie{
+		Name:   "session_id",
+		Value:  "",
+		MaxAge: -1,
+	}
+	http.SetCookie(w, cookie)
+
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
 }
 
 func (vld *Validator) validate(passwordConfirm string) bool {

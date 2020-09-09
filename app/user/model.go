@@ -59,6 +59,14 @@ func createSession(sessionID string, userID int) error {
 	return nil
 }
 
+func deleteSession(sessionID string) error {
+	_, err := config.DB.Exec("DELETE FROM sessions WHERE session_id = $1", sessionID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func sessionExists(r *http.Request) (bool, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
