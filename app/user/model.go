@@ -4,17 +4,18 @@ import (
 	"database/sql"
 	"net/http"
 	"onlineshop/config"
+	"time"
 )
 
 // User struct
 type User struct {
-	ID        int    `db:"id"`
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
-	Email     string `db:"email"`
-	Password  string `db:"password"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID        int       `db:"id"`
+	FirstName string    `db:"first_name"`
+	LastName  string    `db:"last_name"`
+	Email     string    `db:"email"`
+	Password  string    `db:"password"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 // Validator struct
@@ -67,7 +68,7 @@ func deleteSession(sessionID string) error {
 	return nil
 }
 
-func sessionExists(r *http.Request) (bool, error) {
+func SessionExists(r *http.Request) (bool, error) {
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
 		return false, nil

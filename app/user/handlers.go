@@ -19,7 +19,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		result, err := sessionExists(r)
+		result, err := SessionExists(r)
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
@@ -76,8 +76,9 @@ func Login(w http.ResponseWriter, r *http.Request) {
 
 		// Create a new session in the browser cookie
 		cookie := &http.Cookie{
-			Name:  "session_id",
-			Value: sessionID.String(),
+			Name:   "session_id",
+			Value:  sessionID.String(),
+			MaxAge: 15,
 		}
 		http.SetCookie(w, cookie)
 
@@ -100,7 +101,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		// Check if session already exists
-		result, err := sessionExists(r)
+		result, err := SessionExists(r)
 		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
@@ -162,8 +163,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 		// Create a new session in the browser cookie
 		cookie := &http.Cookie{
-			Name:  "session_id",
-			Value: sessionID.String(),
+			Name:   "session_id",
+			Value:  sessionID.String(),
+			MaxAge: 15,
 		}
 		http.SetCookie(w, cookie)
 
@@ -179,7 +181,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 // Logout handler
 func Logout(w http.ResponseWriter, r *http.Request) {
-	result, err := sessionExists(r)
+	result, err := SessionExists(r)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

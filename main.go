@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"onlineshop/app/home"
 	"onlineshop/app/user"
 	"onlineshop/config"
 
@@ -14,7 +15,7 @@ import (
 func main() {
 	config.InitDB("postgres://postgres:postgres@localhost/onlineshop?sslmode=disable")
 
-	http.HandleFunc("/", home)
+	http.Handle("/", basic(home.Index()))
 	http.HandleFunc("/shop", shop)
 	http.HandleFunc("/cart", cart)
 	http.HandleFunc("/checkout", checkout)
@@ -29,21 +30,6 @@ func main() {
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		log.Fatal(err)
-	}
-}
-
-func home(w http.ResponseWriter, r *http.Request) {
-	if r.Method == http.MethodGet {
-		var ctx interface{} = "Home Page"
-		var path = map[string]string{
-			"folder": "home",
-			"file":   "index.gohtml",
-		}
-		renderTemplate(w, path, ctx)
-	} else if r.Method == http.MethodPost {
-		io.WriteString(w, "POST /")
-	} else {
-		http.Error(w, "405 method not allowed", 405)
 	}
 }
 
