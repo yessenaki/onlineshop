@@ -1,4 +1,4 @@
-package home
+package cart
 
 import (
 	"io"
@@ -20,7 +20,28 @@ func Index() http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
-			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", ctxData)
+			err := config.Tpl.ExecuteTemplate(w, "cart.gohtml", ctxData)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+		} else if r.Method == http.MethodPost {
+			io.WriteString(w, "POST /")
+		} else {
+			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+			return
+		}
+	})
+}
+
+func Checkout() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctxData := CtxData{
+			AuthUser: helper.AuthUserFromContext(r.Context()),
+		}
+
+		if r.Method == http.MethodGet {
+			err := config.Tpl.ExecuteTemplate(w, "checkout.gohtml", ctxData)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

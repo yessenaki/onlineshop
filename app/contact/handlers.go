@@ -1,4 +1,4 @@
-package home
+package contact
 
 import (
 	"io"
@@ -20,7 +20,7 @@ func Index() http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
-			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", ctxData)
+			err := config.Tpl.ExecuteTemplate(w, "contact.gohtml", ctxData)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return

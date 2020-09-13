@@ -9,13 +9,14 @@ import (
 
 var DB *sql.DB
 
-func InitDB(source string) {
+func init() {
 	var err error
-	DB, err = sql.Open("postgres", source)
+	DB, err = sql.Open("postgres", "postgres://postgres:postgres@localhost/onlineshop?sslmode=disable")
 	if err != nil {
 		log.Panic(err)
 	}
 	if err = DB.Ping(); err != nil {
 		log.Panic(err)
 	}
+	log.Println("DB connected")
 }

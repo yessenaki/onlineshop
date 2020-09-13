@@ -82,3 +82,18 @@ func SessionExists(r *http.Request) (bool, error) {
 	}
 	return result, nil
 }
+
+func GetAuthUser(r *http.Request) (User, error) {
+	user := User{}
+	cookie, err := r.Cookie("session_id")
+	if err != nil {
+		return user, nil
+	}
+
+	row := config.DB.QueryRow("SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", cookie.Value)
+	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
+}

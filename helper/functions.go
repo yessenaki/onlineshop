@@ -1,10 +1,16 @@
 package helper
 
 import (
+	"context"
 	"net/http"
+	"onlineshop/app/user"
 	"text/template"
 	"time"
 )
+
+func AuthUserFromContext(ctx context.Context) user.User {
+	return ctx.Value(AuthUserKey).(user.User)
+}
 
 func RenderTemplate(w http.ResponseWriter, path map[string]string, ctx interface{}) {
 	t := template.Must(template.ParseGlob("templates/layouts/*.gohtml"))
