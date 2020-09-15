@@ -1,0 +1,141 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom">
+                    <h2>Create product</h2>
+                </div>
+                <div class="card-body">
+                    <form action="#" method="POST" novalidate>
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" class="form-control" id="name" placeholder="Enter name">
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price</label>
+                            <input type="number" name="price" class="form-control" id="price" placeholder="Enter price">
+                        </div>
+                        <div class="form-group form-control-checkbox">
+                            <label class="control outlined control-checkbox checkbox-primary">Is this for a discount sale?
+                                <input type="checkbox" name="is_discount"/>
+                                <div class="control-indicator"></div>
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label for="discount_percentage">Discount percentage</label>
+                            <input type="number" name="discount_percentage" class="form-control" id="discount_percentage" placeholder="Enter discount percentage">
+                        </div>
+                        <div class="form-group">
+                            <label for="old_price">Old price</label>
+                            <input type="number" name="old_price" class="form-control" id="old_price" placeholder="Enter old price">
+                        </div>
+                        <div class="form-group">
+                            <label for="color_id">Category</label>
+                            <select name="color_id" class="form-control" id="color_id">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="color_id">Child category</label>
+                            <select name="color_id" class="form-control" id="color_id">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="brand_id">Brand</label>
+                            <select name="brand_id" class="form-control" id="brand_id">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="size_id">Size</label>
+                            <select name="size_id" class="form-control" id="size_id">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="color_id">Color</label>
+                            <select name="color_id" class="form-control" id="color_id">
+                                <option>1</option>
+                                <option>2</option>
+                                <option>3</option>
+                                <option>4</option>
+                                <option>5</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender</label>
+                            <select name="gender" class="form-control" id="gender">
+                                <option>1</option>
+                                <option>2</option>
+                            </select>
+                        </div>
+                        <div class="form-group form-control-checkbox">
+                            <label class="control outlined control-checkbox checkbox-primary">Is it for the kids?
+                                <input type="checkbox" name="is_kids"/>
+                                <div class="control-indicator"></div>
+                            </label>
+                        </div>
+                        <div class="form-group form-control-checkbox">
+                            <label class="control outlined control-checkbox checkbox-primary">Is it new?
+                                <input type="checkbox" name="is_new"/>
+                                <div class="control-indicator"></div>
+                            </label>
+                        </div>
+
+                        <!-- <div class="form-group">
+                            <label for="exampleFormControlInput1">Email address</label>
+                            <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="Enter Email">
+                            <span class="mt-2 d-block">We'll never share your email with anyone else.</span>
+                        </div> -->
+                        <!-- <div class="form-group">
+                            <label for="exampleFormControlPassword">Password</label>
+                            <input type="password" class="form-control" id="exampleFormControlPassword" placeholder="Password">
+                        </div> -->
+                        <!-- <div class="form-group">
+                            <label for="exampleFormControlTextarea1">Example textarea</label>
+                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="exampleFormControlFile1">Example file input</label>
+                            <input type="file" class="form-control-file" id="exampleFormControlFile1">
+                        </div>
+                        <div class="form-group">
+                            <label for="multiple_select">States</label>
+                            <select class="js-example-basic-multiple form-control" name="states[]" multiple="multiple" id="multiple_select">
+                                <option value="AL">Alabana</option>
+                                <option value="NY">New York</option>
+                                <option value="VR">Virginia</option>
+                                <option value="WA">Washington</option>
+                                <option value="CA">California</option>
+                                <option value="WY">Wyoming</option>
+                            </select>
+                        </div> -->
+                        <div class="form-footer pt-4 pt-5 mt-4 border-top">
+                            <button type="submit" class="btn btn-primary btn-default">Submit</button>
+                            <button type="submit" class="btn btn-secondary btn-default">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}

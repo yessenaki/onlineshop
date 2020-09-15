@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"onlineshop/admin/product"
 	"onlineshop/app/blog"
 	"onlineshop/app/cart"
 	"onlineshop/app/contact"
@@ -23,6 +24,7 @@ func main() {
 	http.Handle("/login", user.Login())
 	http.Handle("/logout", user.Logout())
 	http.Handle("/register", user.Register())
+	http.Handle("/admin", basic(product.Index()))
 	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")
