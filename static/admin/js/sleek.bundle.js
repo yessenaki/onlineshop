@@ -10638,8 +10638,8 @@
 	    ltr.click(function () {
 	      jQuery(this).addClass('btn-right-sidebar-2-active');
 	      rtl.removeClass('btn-right-sidebar-2-active');
-	      $('html').attr('dir', 'ltr');
-	      $("#sleek-css").attr("href", "assets/css/sleek.css");
+		  $('html').attr('dir', 'ltr');
+	      $("#sleek-css").attr("href", "assets/admin/css/sleek.css");
 	      window.dir = 'ltr';
 
 	      //Store in local storage
@@ -10654,8 +10654,8 @@
 	    rtl.click(function () {
 	      jQuery(this).addClass('btn-right-sidebar-2-active');
 	      ltr.removeClass('btn-right-sidebar-2-active');
-	      $('html').attr('dir', 'rtl');
-	      $("#sleek-css").attr("href", "assets/css/sleek.rtl.css");
+		  $('html').attr('dir', 'rtl');
+	      $("#sleek-css").attr("href", "assets/admin/css/sleek.rtl.css");
 	      window.dir = 'rtl';
 
 	      //Store in local storage
@@ -10677,4 +10677,3 @@
 	})();
 
 })));
-//# sourceMappingURL=sleek.bundle.js.map
