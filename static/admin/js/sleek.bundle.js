@@ -10639,7 +10639,7 @@
 	      jQuery(this).addClass('btn-right-sidebar-2-active');
 	      rtl.removeClass('btn-right-sidebar-2-active');
 		  $('html').attr('dir', 'ltr');
-	      $("#sleek-css").attr("href", "assets/admin/css/sleek.css");
+	      $("#sleek-css").attr("href", "/assets/admin/css/sleek.css");
 	      window.dir = 'ltr';
 
 	      //Store in local storage
@@ -10655,7 +10655,7 @@
 	      jQuery(this).addClass('btn-right-sidebar-2-active');
 	      ltr.removeClass('btn-right-sidebar-2-active');
 		  $('html').attr('dir', 'rtl');
-	      $("#sleek-css").attr("href", "assets/admin/css/sleek.rtl.css");
+	      $("#sleek-css").attr("href", "/assets/admin/css/sleek.rtl.css");
 	      window.dir = 'rtl';
 
 	      //Store in local storage
