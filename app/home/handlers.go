@@ -22,7 +22,7 @@ func Index() http.Handler {
 		if r.Method == http.MethodGet {
 			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", ctxData)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
 			}
 		} else if r.Method == http.MethodPost {

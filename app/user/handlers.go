@@ -26,7 +26,7 @@ func Login() http.Handler {
 
 			err = config.Tpl.ExecuteTemplate(w, "login.gohtml", nil)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			}
 			return
 		} else if r.Method == http.MethodPost {
@@ -45,7 +45,7 @@ func Login() http.Handler {
 				vld.Errors["Email"] = "Please enter a valid email address"
 				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				}
 				return
 			}
@@ -59,7 +59,7 @@ func Login() http.Handler {
 				vld.Errors["Email"] = "User not found with this email address"
 				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				}
 				return
 			}
@@ -71,7 +71,7 @@ func Login() http.Handler {
 				vld.Errors["Password"] = "Password does not match, please try again"
 				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				}
 				return
 			}
@@ -117,7 +117,7 @@ func Register() http.Handler {
 
 			err = config.Tpl.ExecuteTemplate(w, "register.gohtml", nil)
 			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			}
 			return
 		} else if r.Method == http.MethodPost {
@@ -134,7 +134,7 @@ func Register() http.Handler {
 			if vld.validate(passwordConfirm) == false {
 				err := config.Tpl.ExecuteTemplate(w, "register.gohtml", vld)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				}
 				return
 			}
@@ -149,7 +149,7 @@ func Register() http.Handler {
 				vld.Errors["Email"] = "The email address is already taken. Please choose another one"
 				err := config.Tpl.ExecuteTemplate(w, "register.gohtml", vld)
 				if err != nil {
-					http.Error(w, err.Error(), http.StatusInternalServerError)
+					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				}
 				return
 			}

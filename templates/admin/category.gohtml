@@ -1,0 +1,40 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>Basic Data Table</h2>
+                    <a href="/admin/category/create" class="btn btn-outline-primary">Create</a>
+                </div>
+                <div class="card-body">
+                    <div class="basic-data-table">
+                        <table id="category-data-table" class="table nowrap" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Parent category</th>
+                                    <th>Created at</th>
+                                    <th>Updated at</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Categories}}
+                                    <tr>
+                                        <td>{{.ID}}</td>
+                                        <td>{{.Title}}</td>
+                                        <td>{{.ParentTitle}}</td>
+                                        <td>{{.CreatedAt}}</td>
+                                        <td>{{.UpdatedAt}}</td>
+                                    </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}

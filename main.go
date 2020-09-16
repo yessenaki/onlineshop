@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"onlineshop/admin/category"
 	"onlineshop/admin/product"
 	"onlineshop/app/blog"
 	"onlineshop/app/cart"
@@ -25,7 +26,13 @@ func main() {
 	http.Handle("/logout", user.Logout())
 	http.Handle("/register", user.Register())
 	http.Handle("/admin", basic(product.Index()))
-	http.Handle("/assets/", http.StripPrefix("/assets", http.FileServer(http.Dir("./static"))))
+	// http.Handle("/admin/products", basic(product.Index()))
+	// http.Handle("/admin/products/create", basic(product.Create()))
+	http.Handle("/admin/categories", basic(category.Index()))
+	http.Handle("/admin/category/create", basic(category.Create()))
+	// http.Handle("/admin/category/edit", basic(category.Index()))
+
+	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")
 	err := http.ListenAndServe(":8080", nil)
