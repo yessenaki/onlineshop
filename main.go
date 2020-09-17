@@ -16,26 +16,23 @@ import (
 )
 
 func main() {
-	http.Handle("/", basic(home.Index()))
-	http.Handle("/shop", basic(shop.Index()))
-	http.Handle("/cart", basic(cart.Index()))
-	http.Handle("/checkout", basic(cart.Checkout()))
-	http.Handle("/blog", basic(blog.Index()))
-	http.Handle("/contact", basic(contact.Index()))
-	http.Handle("/login", user.Login())
-	http.Handle("/logout", user.Logout())
-	http.Handle("/register", user.Register())
-	http.Handle("/admin", basic(product.Index()))
+	mux := http.NewServeMux()
+	mux.Handle("/", home.Index())
+	mux.Handle("/shop/", shop.Index())
+	mux.Handle("/cart/", cart.Index())
+	mux.Handle("/checkout/", cart.Checkout())
+	mux.Handle("/blog/", blog.Index())
+	mux.Handle("/contact/", contact.Index())
+	mux.Handle("/login/", user.Login())
+	mux.Handle("/logout/", user.Logout())
+	mux.Handle("/register/", user.Register())
+	mux.Handle("/admin/", product.Index())
 	// http.Handle("/admin/products", basic(product.Index()))
-	// http.Handle("/admin/products/create", basic(product.Create()))
-	http.Handle("/admin/categories", basic(category.Index()))
-	http.Handle("/admin/category/create", basic(category.Create()))
-	// http.Handle("/admin/category/edit", basic(category.Index()))
-
-	http.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
+	mux.Handle("/admin/categories/", override(category.Handle()))
+	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")
-	err := http.ListenAndServe(":8080", nil)
+	err := http.ListenAndServe(":8080", basic(mux))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,5 +50,23 @@ func basic(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), helper.AuthUserKey, u)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+// Method Override middleware
+func override(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == "POST" {
+			// Look in the request body for a spoofed method.
+			method := r.PostFormValue("_method")
+
+			// Check that the spoofed method is a valid HTTP method and
+			// update the request object accordingly.
+			if method == "PUT" || method == "PATCH" || method == "DELETE" {
+				r.Method = method
+			}
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
