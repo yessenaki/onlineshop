@@ -5,7 +5,7 @@
             <div class="card card-default">
                 <div class="card-header card-header-border-bottom d-flex justify-content-between">
                     <h2>Basic Data Table</h2>
-                    <a href="/admin/category/create" class="btn btn-outline-primary">Create</a>
+                    <a href="/admin/categories/?action=create" class="btn btn-outline-primary">Create</a>
                 </div>
                 <div class="card-body">
                     <div class="basic-data-table">
@@ -23,7 +23,9 @@
                                 {{range .Categories}}
                                     <tr>
                                         <td>{{.ID}}</td>
-                                        <td>{{.Title}}</td>
+                                        <td>
+                                            <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Title}}</a>
+                                        </td>
                                         <td>{{.ParentTitle}}</td>
                                         <td>{{.CreatedAt}}</td>
                                         <td>{{.UpdatedAt}}</td>

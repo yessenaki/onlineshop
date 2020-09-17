@@ -15,7 +15,7 @@ type Category struct {
 	ParentTitle string `db:"parent_title"`
 }
 
-func (ctg *Category) save() (int, error) {
+func (ctg *Category) store() (int, error) {
 	var lastInsertID int
 	sqlStatement := "INSERT INTO categories (title, parent_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
 	err := config.DB.QueryRow(sqlStatement, ctg.Title, ctg.ParentID).Scan(&lastInsertID)
@@ -23,6 +23,14 @@ func (ctg *Category) save() (int, error) {
 		return 0, err
 	}
 	return lastInsertID, nil
+}
+
+func (ctg *Category) update() error {
+	_, err := config.DB.Exec("UPDATE categories SET title=$1, parent_id=$2, updated_at=NOW()::timestamp(0) WHERE id=$3", ctg.Title, ctg.ParentID, ctg.ID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func allCategories() ([]Category, error) {
@@ -53,4 +61,17 @@ func allCategories() ([]Category, error) {
 		return nil, err
 	}
 	return ctgs, nil
+}
+
+func oneCategory(id int) (Category, error) {
+	ctg := Category{}
+	row := config.DB.QueryRow("SELECT * FROM categories WHERE id = $1", id)
+	err := row.Scan(&ctg.ID, &ctg.Title, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return ctg, nil
+		}
+		return ctg, err
+	}
+	return ctg, nil
 }

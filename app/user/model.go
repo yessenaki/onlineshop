@@ -93,6 +93,9 @@ func GetAuthUser(r *http.Request) (User, error) {
 	row := config.DB.QueryRow("SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", cookie.Value)
 	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return user, nil
+		}
 		return user, err
 	}
 	return user, nil
