@@ -13,7 +13,7 @@
                             <thead>
                                 <tr>
                                     <th>ID</th>
-                                    <th>Title</th>
+                                    <th>Name</th>
                                     <th>Parent category</th>
                                     <th>Created at</th>
                                     <th>Updated at</th>
@@ -24,9 +24,9 @@
                                     <tr>
                                         <td>{{.ID}}</td>
                                         <td>
-                                            <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Title}}</a>
+                                            <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
                                         </td>
-                                        <td>{{.ParentTitle}}</td>
+                                        <td>{{.ParentName}}</td>
                                         <td>{{.CreatedAt}}</td>
                                         <td>{{.UpdatedAt}}</td>
                                     </tr>

@@ -7,18 +7,18 @@ import (
 
 // Category struct
 type Category struct {
-	ID          int    `db:"id"`
-	Title       string `db:"title"`
-	ParentID    int    `db:"parent_id"`
-	CreatedAt   string `db:"created_at"`
-	UpdatedAt   string `db:"updated_at"`
-	ParentTitle string `db:"parent_title"`
+	ID         int    `db:"id"`
+	Name       string `db:"name"`
+	ParentID   int    `db:"parent_id"`
+	CreatedAt  string `db:"created_at"`
+	UpdatedAt  string `db:"updated_at"`
+	ParentName string `db:"parent_name"`
 }
 
 func (ctg *Category) store() (int, error) {
 	var lastInsertID int
-	sqlStatement := "INSERT INTO categories (title, parent_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, ctg.Title, ctg.ParentID).Scan(&lastInsertID)
+	sqlStatement := "INSERT INTO categories (name, parent_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID).Scan(&lastInsertID)
 	if err != nil {
 		return 0, err
 	}
@@ -26,7 +26,7 @@ func (ctg *Category) store() (int, error) {
 }
 
 func (ctg *Category) update() error {
-	_, err := config.DB.Exec("UPDATE categories SET title=$1, parent_id=$2, updated_at=NOW()::timestamp(0) WHERE id=$3", ctg.Title, ctg.ParentID, ctg.ID)
+	_, err := config.DB.Exec("UPDATE categories SET name=$1, parent_id=$2, updated_at=NOW()::timestamp(0) WHERE id=$3", ctg.Name, ctg.ParentID, ctg.ID)
 	if err != nil {
 		return err
 	}
@@ -42,7 +42,7 @@ func (ctg *Category) destroy() error {
 }
 
 func allCategories() ([]Category, error) {
-	sqlStatement := `SELECT c1.id, c1.title, c1.parent_id, c1.created_at, c1.updated_at, c2.title as parent_title
+	sqlStatement := `SELECT c1.id, c1.name, c1.parent_id, c1.created_at, c1.updated_at, c2.name as parent_name
 		FROM categories as c1
 		LEFT OUTER JOIN categories as c2
 		ON c1.parent_id = c2.id`
@@ -55,13 +55,13 @@ func allCategories() ([]Category, error) {
 	ctgs := []Category{}
 	for rows.Next() {
 		ctg := Category{}
-		var parentTitle sql.NullString
-		err := rows.Scan(&ctg.ID, &ctg.Title, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &parentTitle)
+		var parentName sql.NullString
+		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &parentName)
 		if err != nil {
 			return nil, err
 		}
-		if parentTitle.Valid {
-			ctg.ParentTitle = parentTitle.String
+		if parentName.Valid {
+			ctg.ParentName = parentName.String
 		}
 		ctgs = append(ctgs, ctg)
 	}
@@ -74,7 +74,7 @@ func allCategories() ([]Category, error) {
 func oneCategory(id int) (Category, error) {
 	ctg := Category{}
 	row := config.DB.QueryRow("SELECT * FROM categories WHERE id = $1", id)
-	err := row.Scan(&ctg.ID, &ctg.Title, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt)
+	err := row.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ctg, nil

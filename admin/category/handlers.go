@@ -91,7 +91,7 @@ func store(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctg := &Category{
-		Title:    r.FormValue("title"),
+		Name:     r.FormValue("name"),
 		ParentID: parentID,
 	}
 	_, err = ctg.store()
@@ -160,7 +160,7 @@ func update(w http.ResponseWriter, r *http.Request) {
 
 	ctg := &Category{
 		ID:       id,
-		Title:    r.FormValue("title"),
+		Name:     r.FormValue("name"),
 		ParentID: parentID,
 	}
 	err = ctg.update()
