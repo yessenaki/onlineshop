@@ -33,6 +33,14 @@ func (ctg *Category) update() error {
 	return nil
 }
 
+func (ctg *Category) destroy() error {
+	_, err := config.DB.Exec("DELETE FROM categories WHERE id=$1", ctg.ID)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func allCategories() ([]Category, error) {
 	sqlStatement := `SELECT c1.id, c1.title, c1.parent_id, c1.created_at, c1.updated_at, c2.title as parent_title
 		FROM categories as c1

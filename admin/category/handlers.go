@@ -25,8 +25,8 @@ func Handle() http.Handler {
 			edit(w, r, auth)
 		case "update":
 			update(w, r)
-		// case "destroy":
-		// destroy(w, r)
+		case "destroy":
+			destroy(w, r)
 		case "notFound":
 			http.Error(w, http.StatusText(404), http.StatusNotFound)
 		default:
@@ -164,6 +164,24 @@ func update(w http.ResponseWriter, r *http.Request) {
 		ParentID: parentID,
 	}
 	err = ctg.update()
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/categories/", http.StatusSeeOther)
+	return
+}
+
+func destroy(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(r.FormValue("_id"))
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	ctg := &Category{ID: id}
+	err = ctg.destroy()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

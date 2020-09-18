@@ -3,8 +3,15 @@
     <div class="row">
         <div class="col-12">
             <div class="card card-default">
-                <div class="card-header card-header-border-bottom">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
                     <h2>{{with .Category.ID}}Update{{else}}Create{{end}} category</h2>
+                    {{with .Category.ID}}
+                    <form action="/admin/categories/" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        <button type="submit" class="btn btn-secondary btn-danger btn-delete">Delete</a>
+                    </form>
+                    {{end}}
                 </div>
                 <div class="card-body">
                     <form action="/admin/categories/" method="POST" novalidate>

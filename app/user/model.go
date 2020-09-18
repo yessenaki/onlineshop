@@ -35,7 +35,7 @@ func (u *User) createUser() (int, error) {
 }
 
 func (u *User) exists() (bool, error) {
-	row := config.DB.QueryRow("SELECT id, password FROM users WHERE email = $1", u.Email)
+	row := config.DB.QueryRow("SELECT id, password FROM users WHERE email=$1", u.Email)
 	err := row.Scan(&u.ID, &u.Password)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -47,7 +47,7 @@ func (u *User) exists() (bool, error) {
 }
 
 func createSession(sessionID string, userID int) error {
-	_, err := config.DB.Exec("DELETE FROM sessions WHERE user_id = $1", userID)
+	_, err := config.DB.Exec("DELETE FROM sessions WHERE user_id=$1", userID)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func createSession(sessionID string, userID int) error {
 }
 
 func deleteSession(sessionID string) error {
-	_, err := config.DB.Exec("DELETE FROM sessions WHERE session_id = $1", sessionID)
+	_, err := config.DB.Exec("DELETE FROM sessions WHERE session_id=$1", sessionID)
 	if err != nil {
 		return err
 	}
@@ -75,7 +75,7 @@ func SessionExists(r *http.Request) (bool, error) {
 	}
 
 	var result bool
-	sqlStatement := "SELECT EXISTS(SELECT 1 FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1))"
+	sqlStatement := "SELECT EXISTS(SELECT 1 FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1))"
 	err = config.DB.QueryRow(sqlStatement, cookie.Value).Scan(&result)
 	if err != nil {
 		return false, err
@@ -90,7 +90,7 @@ func GetAuthUser(r *http.Request) (User, error) {
 		return user, nil
 	}
 
-	row := config.DB.QueryRow("SELECT * FROM users WHERE id = (SELECT user_id FROM sessions WHERE session_id = $1)", cookie.Value)
+	row := config.DB.QueryRow("SELECT * FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1)", cookie.Value)
 	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {

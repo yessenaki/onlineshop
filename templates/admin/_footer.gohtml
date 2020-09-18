@@ -91,6 +91,11 @@
                 "dom": '<"row justify-content-between top-information"lf>rt<"row justify-content-between bottom-information"ip><"clear">'
             });
         });
+        jQuery(".btn-delete").click(function(e) {
+            if (confirm('Are you sure you want to do this?') == false) {
+                e.preventDefault();
+            }
+        });
     </script>
     <script src="/assets/admin/js/sleek.bundle.js"></script>
 </body>
