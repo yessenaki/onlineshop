@@ -1,4 +1,4 @@
-package category
+package brand
 
 import (
 	"net/http"
@@ -35,21 +35,21 @@ func Handle() http.Handler {
 
 func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth       user.User
-		Categories []Category
+		Auth   user.User
+		Brands []Brand
 	}
 
-	ctgs, err := allCategories()
+	brands, err := allBrands()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
 	data := Data{
-		Auth:       auth,
-		Categories: ctgs,
+		Auth:   auth,
+		Brands: brands,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "category.gohtml", data)
+	err = config.Tpl.ExecuteTemplate(w, "brand.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -58,22 +58,12 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth       user.User
-		Categories []Category
-		Category   Category
+		Auth  user.User
+		Brand Brand
 	}
 
-	ctgs, err := allCategories()
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
-	data := Data{
-		Auth:       auth,
-		Categories: ctgs,
-	}
-	err = config.Tpl.ExecuteTemplate(w, "category_form.gohtml", data)
+	data := Data{Auth: auth}
+	err := config.Tpl.ExecuteTemplate(w, "brand_form.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -81,61 +71,45 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 }
 
 func store(w http.ResponseWriter, r *http.Request) {
-	parentID, err := strconv.Atoi(r.FormValue("parent_id"))
+	brand := &Brand{
+		Name: r.FormValue("name"),
+	}
+	_, err := brand.store()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	ctg := &Category{
-		Name:     r.FormValue("name"),
-		ParentID: parentID,
-	}
-	_, err = ctg.store()
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/admin/categories/", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/brands/", http.StatusSeeOther)
 	return
 }
 
 func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth       user.User
-		Categories []Category
-		Category   Category
+		Auth  user.User
+		Brand Brand
 	}
-
 	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	ctg, err := oneCategory(id)
+	brand, err := oneBrand(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	if ctg.ID < 1 {
+	if brand.ID < 1 {
 		http.Error(w, http.StatusText(404), http.StatusNotFound)
 		return
 	}
 
-	ctgs, err := allCategories()
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
 	data := Data{
-		Auth:       auth,
-		Categories: ctgs,
-		Category:   ctg,
+		Auth:  auth,
+		Brand: brand,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "category_form.gohtml", data)
+	err = config.Tpl.ExecuteTemplate(w, "brand_form.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -149,24 +123,17 @@ func update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	parentID, err := strconv.Atoi(r.FormValue("parent_id"))
+	brand := &Brand{
+		ID:   id,
+		Name: r.FormValue("name"),
+	}
+	err = brand.update()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	ctg := &Category{
-		ID:       id,
-		Name:     r.FormValue("name"),
-		ParentID: parentID,
-	}
-	err = ctg.update()
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
-	http.Redirect(w, r, "/admin/categories/", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/brands/", http.StatusSeeOther)
 	return
 }
 
@@ -177,13 +144,13 @@ func destroy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ctg := &Category{ID: id}
-	err = ctg.destroy()
+	brand := &Brand{ID: id}
+	err = brand.destroy()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/categories/", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/brands/", http.StatusSeeOther)
 	return
 }

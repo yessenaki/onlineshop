@@ -16,13 +16,13 @@ type Category struct {
 }
 
 func (ctg *Category) store() (int, error) {
-	var lastInsertID int
+	var lastInsertedID int
 	sqlStatement := "INSERT INTO categories (name, parent_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID).Scan(&lastInsertID)
+	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID).Scan(&lastInsertedID)
 	if err != nil {
-		return 0, err
+		return lastInsertedID, err
 	}
-	return lastInsertID, nil
+	return lastInsertedID, nil
 }
 
 func (ctg *Category) update() error {
@@ -45,7 +45,7 @@ func allCategories() ([]Category, error) {
 	sqlStatement := `SELECT c1.id, c1.name, c1.parent_id, c1.created_at, c1.updated_at, c2.name as parent_name
 		FROM categories as c1
 		LEFT OUTER JOIN categories as c2
-		ON c1.parent_id = c2.id`
+		ON c1.parent_id=c2.id`
 	rows, err := config.DB.Query(sqlStatement)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func allCategories() ([]Category, error) {
 
 func oneCategory(id int) (Category, error) {
 	ctg := Category{}
-	row := config.DB.QueryRow("SELECT * FROM categories WHERE id = $1", id)
+	row := config.DB.QueryRow("SELECT * FROM categories WHERE id=$1", id)
 	err := row.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {

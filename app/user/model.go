@@ -25,13 +25,13 @@ type Validator struct {
 }
 
 func (u *User) createUser() (int, error) {
-	var lastInsertID int
+	var lastInsertedID int
 	sqlStatement := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&lastInsertID)
+	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&lastInsertedID)
 	if err != nil {
 		return 0, err
 	}
-	return lastInsertID, nil
+	return lastInsertedID, nil
 }
 
 func (u *User) exists() (bool, error) {

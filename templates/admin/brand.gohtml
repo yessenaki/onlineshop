@@ -4,8 +4,8 @@
         <div class="col-12">
             <div class="card card-default">
                 <div class="card-header card-header-border-bottom d-flex justify-content-between">
-                    <h2>Categories</h2>
-                    <a href="/admin/categories/?action=create" class="btn btn-outline-primary">Create</a>
+                    <h2>Brands</h2>
+                    <a href="/admin/brands/?action=create" class="btn btn-outline-primary">Create</a>
                 </div>
                 <div class="card-body">
                     <div class="basic-data-table">
@@ -14,19 +14,17 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Name</th>
-                                    <th>Parent category</th>
                                     <th>Created at</th>
                                     <th>Updated at</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range .Categories}}
+                                {{range .Brands}}
                                     <tr>
                                         <td>{{.ID}}</td>
                                         <td>
-                                            <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
+                                            <a href="/admin/brands/?action=edit&id={{.ID}}">{{.Name}}</a>
                                         </td>
-                                        <td>{{.ParentName}}</td>
                                         <td>{{.CreatedAt}}</td>
                                         <td>{{.UpdatedAt}}</td>
                                     </tr>

@@ -4,12 +4,49 @@ import (
 	"context"
 	"net/http"
 	"onlineshop/app/user"
+	"strconv"
+	"strings"
 	"text/template"
 	"time"
 )
 
 func AuthUserFromContext(ctx context.Context) user.User {
 	return ctx.Value(AuthUserKey).(user.User)
+}
+
+func DefineAction(r *http.Request) string {
+	p := strings.Trim(r.URL.Path, "/")
+	if len(strings.Split(p, "/")) > 2 {
+		return "notFound"
+	}
+
+	action := "notAllowed"
+	switch r.Method {
+	case "GET":
+		idExists := false
+		if id, ok := r.URL.Query()["id"]; ok {
+			if _, err := strconv.Atoi(id[0]); err == nil {
+				idExists = true
+			}
+		}
+		queryAction, ok := r.URL.Query()["action"]
+
+		if ok && queryAction[0] == "edit" && idExists {
+			action = "edit"
+		} else if ok && queryAction[0] == "create" {
+			action = "create"
+		} else {
+			action = "index"
+		}
+	case "POST":
+		action = "store"
+	case "PUT":
+		action = "update"
+	case "DELETE":
+		action = "destroy"
+	}
+
+	return action
 }
 
 func RenderTemplate(w http.ResponseWriter, path map[string]string, ctx interface{}) {

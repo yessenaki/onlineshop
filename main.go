@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/product"
 	"onlineshop/app/blog"
@@ -29,6 +30,7 @@ func main() {
 	mux.Handle("/admin/", product.Index())
 	// http.Handle("/admin/products", basic(product.Index()))
 	mux.Handle("/admin/categories/", override(category.Handle()))
+	mux.Handle("/admin/brands/", override(brand.Handle()))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")
