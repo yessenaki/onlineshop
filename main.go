@@ -7,6 +7,7 @@ import (
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/product"
+	"onlineshop/admin/shoesize"
 	"onlineshop/app/blog"
 	"onlineshop/app/cart"
 	"onlineshop/app/contact"
@@ -31,6 +32,7 @@ func main() {
 	// http.Handle("/admin/products", basic(product.Index()))
 	mux.Handle("/admin/categories/", override(category.Handle()))
 	mux.Handle("/admin/brands/", override(brand.Handle()))
+	mux.Handle("/admin/shoe-sizes/", override(shoesize.Handle()))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")

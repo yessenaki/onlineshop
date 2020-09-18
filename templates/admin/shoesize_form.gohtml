@@ -1,0 +1,37 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>{{if .Shoesize.ID}}Update{{else}}Create{{end}} shoe size</h2>
+                    {{with .Shoesize.ID}}
+                    <form action="/admin/shoe-sizes/" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        <button type="submit" class="btn btn-secondary btn-danger btn-delete">Delete</a>
+                    </form>
+                    {{end}}
+                </div>
+                <div class="card-body">
+                    <form action="/admin/shoe-sizes/" method="POST" novalidate>
+                        {{with .Shoesize.ID}}
+                        <input type="hidden" name="_method" value="PUT">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        {{end}}
+                        <div class="form-group">
+                            <label for="size">Size</label>
+                            <input type="number" name="size" class="form-control" id="size" placeholder="Enter size"
+                                {{with .Shoesize.Size}}value="{{.}}"{{end}}>
+                        </div>
+                        <div class="form-footer pt-4 pt-5 mt-4 border-top">
+                            <button type="submit" class="btn btn-primary btn-default">Submit</button>
+                            <a href="/admin/shoe-sizes/" class="btn btn-secondary btn-default">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}
