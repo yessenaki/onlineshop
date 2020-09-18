@@ -1,0 +1,40 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>Clothes sizes</h2>
+                    <a href="/admin/clothes-sizes/?action=create" class="btn btn-outline-primary">Create</a>
+                </div>
+                <div class="card-body">
+                    <div class="basic-data-table">
+                        <table id="basic-data-table" class="table nowrap" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Size</th>
+                                    <th>Created at</th>
+                                    <th>Updated at</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Clothessizes}}
+                                    <tr>
+                                        <td>{{.ID}}</td>
+                                        <td>
+                                            <a href="/admin/clothes-sizes/?action=edit&id={{.ID}}">{{.Size}}</a>
+                                        </td>
+                                        <td>{{.CreatedAt}}</td>
+                                        <td>{{.UpdatedAt}}</td>
+                                    </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}
