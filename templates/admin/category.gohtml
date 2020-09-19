@@ -21,15 +21,15 @@
                             </thead>
                             <tbody>
                                 {{range .Categories}}
-                                    <tr>
-                                        <td>{{.ID}}</td>
-                                        <td>
-                                            <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
-                                        </td>
-                                        <td>{{.ParentName}}</td>
-                                        <td>{{.CreatedAt}}</td>
-                                        <td>{{.UpdatedAt}}</td>
-                                    </tr>
+                                <tr>
+                                    <td>{{.ID}}</td>
+                                    <td>
+                                        <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
+                                    </td>
+                                    <td>{{.ParentName}}</td>
+                                    <td>{{.CreatedAt}}</td>
+                                    <td>{{.UpdatedAt}}</td>
+                                </tr>
                                 {{end}}
                             </tbody>
                         </table>

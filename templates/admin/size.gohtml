@@ -4,8 +4,8 @@
         <div class="col-12">
             <div class="card card-default">
                 <div class="card-header card-header-border-bottom d-flex justify-content-between">
-                    <h2>Clothes sizes</h2>
-                    <a href="/admin/clothes-sizes/?action=create" class="btn btn-outline-primary">Create</a>
+                    <h2>Sizes</h2>
+                    <a href="/admin/sizes/?action=create" class="btn btn-outline-primary">Create</a>
                 </div>
                 <div class="card-body">
                     <div class="basic-data-table">
@@ -14,20 +14,26 @@
                                 <tr>
                                     <th>ID</th>
                                     <th>Size</th>
+                                    <th>Type</th>
                                     <th>Created at</th>
                                     <th>Updated at</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{range .Clothessizes}}
-                                    <tr>
-                                        <td>{{.ID}}</td>
-                                        <td>
-                                            <a href="/admin/clothes-sizes/?action=edit&id={{.ID}}">{{.Size}}</a>
-                                        </td>
-                                        <td>{{.CreatedAt}}</td>
-                                        <td>{{.UpdatedAt}}</td>
-                                    </tr>
+                                {{range .Sizes}}
+                                <tr>
+                                    <td>{{.ID}}</td>
+                                    <td>
+                                        <a href="/admin/sizes/?action=edit&id={{.ID}}">{{.Size}}</a>
+                                    </td>
+                                    {{if eq .Type 0}}
+                                    <td>Clothes</td>
+                                    {{else}}
+                                    <td>Shoe</td>
+                                    {{end}}
+                                    <td>{{.CreatedAt}}</td>
+                                    <td>{{.UpdatedAt}}</td>
+                                </tr>
                                 {{end}}
                             </tbody>
                         </table>

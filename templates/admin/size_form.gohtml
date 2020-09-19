@@ -4,9 +4,9 @@
         <div class="col-12">
             <div class="card card-default">
                 <div class="card-header card-header-border-bottom d-flex justify-content-between">
-                    <h2>{{if .Shoesize.ID}}Update{{else}}Create{{end}} shoe size</h2>
-                    {{with .Shoesize.ID}}
-                    <form action="/admin/shoe-sizes/" method="POST">
+                    <h2>{{if .Size.ID}}Update{{else}}Create{{end}} size</h2>
+                    {{with .Size.ID}}
+                    <form action="/admin/sizes/" method="POST">
                         <input type="hidden" name="_method" value="DELETE">
                         <input type="hidden" name="_id" value="{{.}}">
                         <button type="submit" class="btn btn-secondary btn-danger btn-delete">Delete</a>
@@ -14,19 +14,27 @@
                     {{end}}
                 </div>
                 <div class="card-body">
-                    <form action="/admin/shoe-sizes/" method="POST" novalidate>
-                        {{with .Shoesize.ID}}
+                    <form action="/admin/sizes/" method="POST" novalidate>
+                        {{with .Size.ID}}
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="_id" value="{{.}}">
                         {{end}}
                         <div class="form-group">
                             <label for="size">Size</label>
-                            <input type="number" name="size" class="form-control" id="size" placeholder="Enter size"
-                                {{with .Shoesize.Size}}value="{{.}}"{{end}}>
+                            <input type="text" name="size" class="form-control" id="size" placeholder="Enter size"
+                                {{with .Size.Size}}value="{{.}}"{{end}}>
                         </div>
+                        <div class="form-group">
+                            <label for="type">Type</label>
+                            <select name="type" class="form-control" id="type">
+                                <option value="0" {{if eq .Size.Type 0}}selected{{end}}>Clothes</option>
+                                <option value="1" {{if eq .Size.Type 1}}selected{{end}}>Shoe</option>
+                            </select>
+                        </div>
+
                         <div class="form-footer pt-4 pt-5 mt-4 border-top">
                             <button type="submit" class="btn btn-primary btn-default">Submit</button>
-                            <a href="/admin/shoe-sizes/" class="btn btn-secondary btn-default">Cancel</a>
+                            <a href="/admin/sizes/" class="btn btn-secondary btn-default">Cancel</a>
                         </div>
                     </form>
                 </div>

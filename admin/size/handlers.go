@@ -1,4 +1,4 @@
-package shoesize
+package size
 
 import (
 	"net/http"
@@ -35,21 +35,21 @@ func Handle() http.Handler {
 
 func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth      user.User
-		Shoesizes []Shoesize
+		Auth  user.User
+		Sizes []Size
 	}
 
-	shs, err := allShoesizes()
+	sizes, err := AllSizes()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
 	data := Data{
-		Auth:      auth,
-		Shoesizes: shs,
+		Auth:  auth,
+		Sizes: sizes,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "shoesize.gohtml", data)
+	err = config.Tpl.ExecuteTemplate(w, "size.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -58,12 +58,12 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth     user.User
-		Shoesize Shoesize
+		Auth user.User
+		Size Size
 	}
 
 	data := Data{Auth: auth}
-	err := config.Tpl.ExecuteTemplate(w, "shoesize_form.gohtml", data)
+	err := config.Tpl.ExecuteTemplate(w, "size_form.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -71,45 +71,53 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 }
 
 func store(w http.ResponseWriter, r *http.Request) {
-	sh := &Shoesize{
-		Size: r.FormValue("size"),
-	}
-	_, err := sh.store()
+	t, err := strconv.Atoi(r.FormValue("type"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/shoe-sizes/", http.StatusSeeOther)
+	size := &Size{
+		Size: r.FormValue("size"),
+		Type: t,
+	}
+
+	_, err = size.store()
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/sizes/", http.StatusSeeOther)
 	return
 }
 
 func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
-		Auth     user.User
-		Shoesize Shoesize
+		Auth user.User
+		Size Size
 	}
+
 	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-
-	sh, err := oneShoesize(id)
+	size, err := oneSize(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	if sh.ID < 1 {
+	if size.ID < 1 {
 		http.Error(w, http.StatusText(404), http.StatusNotFound)
 		return
 	}
 
 	data := Data{
-		Auth:     auth,
-		Shoesize: sh,
+		Auth: auth,
+		Size: size,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "shoesize_form.gohtml", data)
+	err = config.Tpl.ExecuteTemplate(w, "size_form.gohtml", data)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -122,18 +130,24 @@ func update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-
-	sh := &Shoesize{
-		ID:   id,
-		Size: r.FormValue("size"),
-	}
-	err = sh.update()
+	t, err := strconv.Atoi(r.FormValue("type"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/shoe-sizes/", http.StatusSeeOther)
+	size := &Size{
+		ID:   id,
+		Size: r.FormValue("size"),
+		Type: t,
+	}
+	err = size.update()
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/admin/sizes/", http.StatusSeeOther)
 	return
 }
 
@@ -144,13 +158,13 @@ func destroy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sh := &Shoesize{ID: id}
-	err = sh.destroy()
+	size := &Size{ID: id}
+	err = size.destroy()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	http.Redirect(w, r, "/admin/shoe-sizes/", http.StatusSeeOther)
+	http.Redirect(w, r, "/admin/sizes/", http.StatusSeeOther)
 	return
 }

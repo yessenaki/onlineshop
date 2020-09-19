@@ -6,10 +6,9 @@ import (
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
-	"onlineshop/admin/clothessize"
 	"onlineshop/admin/color"
 	"onlineshop/admin/product"
-	"onlineshop/admin/shoesize"
+	"onlineshop/admin/size"
 	"onlineshop/app/blog"
 	"onlineshop/app/cart"
 	"onlineshop/app/contact"
@@ -30,12 +29,10 @@ func main() {
 	mux.Handle("/login/", user.Login())
 	mux.Handle("/logout/", user.Logout())
 	mux.Handle("/register/", user.Register())
-	mux.Handle("/admin/", product.Index())
-	// http.Handle("/admin/products", basic(product.Index()))
+	mux.Handle("/admin/products/", override(product.Handle()))
 	mux.Handle("/admin/categories/", override(category.Handle()))
 	mux.Handle("/admin/brands/", override(brand.Handle()))
-	mux.Handle("/admin/shoe-sizes/", override(shoesize.Handle()))
-	mux.Handle("/admin/clothes-sizes/", override(clothessize.Handle()))
+	mux.Handle("/admin/sizes/", override(size.Handle()))
 	mux.Handle("/admin/colors/", override(color.Handle()))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 

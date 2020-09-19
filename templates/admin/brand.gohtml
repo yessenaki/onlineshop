@@ -20,14 +20,14 @@
                             </thead>
                             <tbody>
                                 {{range .Brands}}
-                                    <tr>
-                                        <td>{{.ID}}</td>
-                                        <td>
-                                            <a href="/admin/brands/?action=edit&id={{.ID}}">{{.Name}}</a>
-                                        </td>
-                                        <td>{{.CreatedAt}}</td>
-                                        <td>{{.UpdatedAt}}</td>
-                                    </tr>
+                                <tr>
+                                    <td>{{.ID}}</td>
+                                    <td>
+                                        <a href="/admin/brands/?action=edit&id={{.ID}}">{{.Name}}</a>
+                                    </td>
+                                    <td>{{.CreatedAt}}</td>
+                                    <td>{{.UpdatedAt}}</td>
+                                </tr>
                                 {{end}}
                             </tbody>
                         </table>
