@@ -39,7 +39,7 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Categories []Category
 	}
 
-	ctgs, err := allCategories()
+	ctgs, err := AllCategories()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -63,7 +63,7 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Category   Category
 	}
 
-	ctgs, err := allCategories()
+	ctgs, err := AllCategories()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -124,7 +124,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	ctgs, err := allCategories()
+	ctgs, err := AllCategories()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

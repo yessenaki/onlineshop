@@ -39,7 +39,7 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Colors []Color
 	}
 
-	colors, err := allColors()
+	colors, err := AllColors()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

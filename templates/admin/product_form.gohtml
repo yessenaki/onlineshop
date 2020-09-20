@@ -3,113 +3,109 @@
     <div class="row">
         <div class="col-12">
             <div class="card card-default">
-                <div class="card-header card-header-border-bottom">
-                    <h2>Create product</h2>
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>{{if .Product.ID}}Update{{else}}Create{{end}} product</h2>
+                    {{with .Product.ID}}
+                    <form action="/admin/products/" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        <button type="submit" class="btn btn-secondary btn-danger btn-delete">Delete</a>
+                    </form>
+                    {{end}}
                 </div>
                 <div class="card-body">
-                    <form action="#" method="POST" novalidate>
+                    <form action="/admin/products/" method="POST" novalidate>
+                        {{with .Product.ID}}
+                        <input type="hidden" name="_method" value="PUT">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        {{end}}
                         <div class="form-group">
-                            <label for="name">Name</label>
-                            <input type="text" name="name" class="form-control" id="name" placeholder="Enter name">
+                            <label for="title">Title</label>
+                            <input type="text" name="title" class="form-control" id="title" placeholder="Enter title"
+                                {{with .Product.Title}}value="{{.}}"{{end}}>
                         </div>
                         <div class="form-group">
                             <label for="price">Price</label>
-                            <input type="number" name="price" class="form-control" id="price" placeholder="Enter price">
+                            <input type="number" name="price" class="form-control" id="price" placeholder="Enter price"
+                                {{with .Product.Price}}value="{{.}}"{{end}}>
                         </div>
                         <div class="form-group form-control-checkbox">
                             <label class="control outlined control-checkbox checkbox-primary">Is this for a discount sale?
-                                <input type="checkbox" name="is_discount"/>
+                                <input type="checkbox" id="is_discount" name="is_discount" {{if eq .Product.IsDiscount 1}}checked{{end}}>
                                 <div class="control-indicator"></div>
                             </label>
                         </div>
-                        <div class="form-group">
-                            <label for="discount_percentage">Discount percentage</label>
-                            <input type="number" name="discount_percentage" class="form-control" id="discount_percentage" placeholder="Enter discount percentage">
+                        <div class="form-group dsc-percent{{if eq .Product.IsDiscount 1}} show-input{{end}}">
+                            <label for="dsc_percent">Discount percent</label>
+                            <input type="number" name="dsc_percent" class="form-control" placeholder="Enter discount percent"
+                                {{with .Product.DscPercent}}value="{{.}}"{{end}}>
                         </div>
-                        <div class="form-group">
+                        <div class="form-group old-price{{if eq .Product.IsDiscount 1}} show-input{{end}}">
                             <label for="old_price">Old price</label>
-                            <input type="number" name="old_price" class="form-control" id="old_price" placeholder="Enter old price">
+                            <input type="number" name="old_price" class="form-control" placeholder="Enter old price"
+                                {{with .Product.OldPrice}}value="{{.}}"{{end}}>
                         </div>
                         <div class="form-group">
-                            <label for="color_id">Category</label>
-                            <select name="color_id" class="form-control" id="color_id">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="color_id">Child category</label>
-                            <select name="color_id" class="form-control" id="color_id">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
+                            <label for="category_id">Category</label>
+                            <select name="category_id" class="form-control" id="category_id">
+                                {{range .Categories}}
+                                <option value="{{.ID}}" {{if eq $.Product.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
+                                {{end}}
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="brand_id">Brand</label>
                             <select name="brand_id" class="form-control" id="brand_id">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="size_id">Size</label>
-                            <select name="size_id" class="form-control" id="size_id">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
+                                {{range .Brands}}
+                                <option value="{{.ID}}" {{if eq $.Product.BrandID .ID}}selected{{end}}>{{.Name}}</option>
+                                {{end}}
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="color_id">Color</label>
                             <select name="color_id" class="form-control" id="color_id">
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
+                                {{range .Colors}}
+                                <option value="{{.ID}}" {{if eq $.Product.ColorID .ID}}selected{{end}}>{{.Name}}</option>
+                                {{end}}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="size_id">Size</label>
+                            <select name="size_id" class="form-control" id="size_id">
+                                {{range .Sizes}}
+                                <option value="{{.ID}}" {{if eq $.Product.SizeID .ID}}selected{{end}}>{{.Size}}</option>
+                                {{end}}
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="gender">Gender</label>
                             <select name="gender" class="form-control" id="gender">
-                                <option>1</option>
-                                <option>2</option>
+                                <option value="0" {{if eq .Product.Gender 0}}selected{{end}}>Male</option>
+                                <option value="1" {{if eq .Product.Gender 1}}selected{{end}}>Female</option>
                             </select>
                         </div>
                         <div class="form-group form-control-checkbox">
                             <label class="control outlined control-checkbox checkbox-primary">Is it for the kids?
-                                <input type="checkbox" name="is_kids"/>
+                                <input type="checkbox" name="is_kids" {{if eq .Product.IsKids 1}}checked{{end}}>
                                 <div class="control-indicator"></div>
                             </label>
                         </div>
                         <div class="form-group form-control-checkbox">
                             <label class="control outlined control-checkbox checkbox-primary">Is it new?
-                                <input type="checkbox" name="is_new"/>
+                                <input type="checkbox" name="is_new" {{if eq .Product.IsNew 1}}checked{{end}}>
                                 <div class="control-indicator"></div>
                             </label>
                         </div>
-
-                        <!-- <div class="form-group">
+                        {{/* <div class="form-group">
                             <label for="exampleFormControlInput1">Email address</label>
                             <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="Enter Email">
                             <span class="mt-2 d-block">We'll never share your email with anyone else.</span>
-                        </div> -->
-                        <!-- <div class="form-group">
+                        </div>
+                        <div class="form-group">
                             <label for="exampleFormControlPassword">Password</label>
                             <input type="password" class="form-control" id="exampleFormControlPassword" placeholder="Password">
-                        </div> -->
-                        <!-- <div class="form-group">
+                        </div>
+                        <div class="form-group">
                             <label for="exampleFormControlTextarea1">Example textarea</label>
                             <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
                         </div>
@@ -127,10 +123,10 @@
                                 <option value="CA">California</option>
                                 <option value="WY">Wyoming</option>
                             </select>
-                        </div> -->
+                        </div> */}}
                         <div class="form-footer pt-4 pt-5 mt-4 border-top">
                             <button type="submit" class="btn btn-primary btn-default">Submit</button>
-                            <button type="submit" class="btn btn-secondary btn-default">Cancel</button>
+                            <a href="/admin/products/" class="btn btn-secondary btn-default">Cancel</a>
                         </div>
                     </form>
                 </div>

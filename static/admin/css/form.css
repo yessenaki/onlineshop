@@ -279,4 +279,11 @@
     padding-right: 0.31rem;
     margin-right: 0.31rem;
     border-right: 1px solid #4c84ff; }
-  
+
+.dsc-percent,
+.old-price {
+  display: none;
+}
+.show-input {
+  display: block;
+}

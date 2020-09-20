@@ -96,6 +96,15 @@
                 e.preventDefault();
             }
         });
+        jQuery("#is_discount").click(function(e) {
+            if ($(this).prop("checked")) {
+                jQuery(".dsc-percent").addClass("show-input");
+                jQuery(".old-price").addClass("show-input");
+            } else {
+                jQuery(".dsc-percent").removeClass("show-input");
+                jQuery(".old-price").removeClass("show-input");
+            }
+        });
     </script>
     <script src="/assets/admin/js/sleek.bundle.js"></script>
 </body>

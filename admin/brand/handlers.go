@@ -39,7 +39,7 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Brands []Brand
 	}
 
-	brands, err := allBrands()
+	brands, err := AllBrands()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

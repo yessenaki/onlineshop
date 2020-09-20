@@ -39,7 +39,7 @@ func (c *Color) destroy() error {
 	return nil
 }
 
-func allColors() ([]Color, error) {
+func AllColors() ([]Color, error) {
 	rows, err := config.DB.Query("SELECT * FROM colors")
 	if err != nil {
 		return nil, err

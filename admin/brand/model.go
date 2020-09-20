@@ -39,7 +39,7 @@ func (b *Brand) destroy() error {
 	return nil
 }
 
-func allBrands() ([]Brand, error) {
+func AllBrands() ([]Brand, error) {
 	rows, err := config.DB.Query("SELECT * FROM brands")
 	if err != nil {
 		return nil, err
