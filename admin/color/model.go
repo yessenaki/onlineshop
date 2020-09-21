@@ -3,6 +3,7 @@ package color
 import (
 	"database/sql"
 	"onlineshop/config"
+	"strings"
 )
 
 // Color struct
@@ -11,6 +12,18 @@ type Color struct {
 	Name      string `db:"name"`
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
+	Errors    map[string]string
+}
+
+func (c *Color) validate() bool {
+	c.Errors = make(map[string]string)
+	name := strings.TrimSpace(c.Name)
+
+	if name == "" || len(name) > 30 {
+		c.Errors["Name"] = "The field Name must be a string with a maximum length of 30"
+	}
+
+	return len(c.Errors) == 0
 }
 
 func (c *Color) store() (int, error) {

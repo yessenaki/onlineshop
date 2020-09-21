@@ -22,7 +22,7 @@
                         <div class="form-group">
                             <label for="name">Name</label>
                             <input type="text" name="name" id="name" placeholder="Enter name"
-                                class="form-control {{if .Brand.Errors.Name}}is-invalid{{end}}"
+                                class="form-control{{if .Brand.Errors.Name}} is-invalid{{end}}"
                                 {{with .Brand.Name}}value="{{.}}"{{end}}>
                             {{with .Brand.Errors.Name}}
                             <div class="invalid-feedback">{{.}}</div>
