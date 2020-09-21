@@ -3,6 +3,7 @@ package category
 import (
 	"database/sql"
 	"onlineshop/config"
+	"strings"
 )
 
 // Category struct
@@ -13,6 +14,18 @@ type Category struct {
 	CreatedAt  string `db:"created_at"`
 	UpdatedAt  string `db:"updated_at"`
 	ParentName string `db:"parent_name"`
+	Errors     map[string]string
+}
+
+func (ctg *Category) validate() bool {
+	ctg.Errors = make(map[string]string)
+	name := strings.TrimSpace(ctg.Name)
+
+	if name == "" || len(name) > 50 {
+		ctg.Errors["Name"] = "The field Name must be a string with a maximum length of 10"
+	}
+
+	return len(ctg.Errors) == 0
 }
 
 func (ctg *Category) store() (int, error) {

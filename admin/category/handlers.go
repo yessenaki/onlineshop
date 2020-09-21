@@ -3,7 +3,6 @@ package category
 import (
 	"net/http"
 	"onlineshop/app/user"
-	"onlineshop/config"
 	"onlineshop/helper"
 	"strconv"
 )
@@ -18,11 +17,11 @@ func Handle() http.Handler {
 		case "create":
 			create(w, r, auth)
 		case "store":
-			store(w, r)
+			store(w, r, auth)
 		case "edit":
 			edit(w, r, auth)
 		case "update":
-			update(w, r)
+			update(w, r, auth)
 		case "destroy":
 			destroy(w, r)
 		case "notFound":
@@ -49,11 +48,8 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:       auth,
 		Categories: ctgs,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "category.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "category.gohtml", data)
+	return
 }
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
@@ -73,14 +69,11 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:       auth,
 		Categories: ctgs,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "category_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "category_form.gohtml", data)
+	return
 }
 
-func store(w http.ResponseWriter, r *http.Request) {
+func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	parentID, err := strconv.Atoi(r.FormValue("parent_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -91,6 +84,29 @@ func store(w http.ResponseWriter, r *http.Request) {
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
 	}
+
+	if ctg.validate() == false {
+		type Data struct {
+			Auth       user.User
+			Categories []Category
+			Category   *Category
+		}
+
+		ctgs, err := AllCategories()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		data := Data{
+			Auth:       auth,
+			Categories: ctgs,
+			Category:   ctg,
+		}
+		helper.Render(w, "category_form.gohtml", data)
+		return
+	}
+
 	_, err = ctg.store()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -135,14 +151,11 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Categories: ctgs,
 		Category:   ctg,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "category_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "category_form.gohtml", data)
+	return
 }
 
-func update(w http.ResponseWriter, r *http.Request) {
+func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 	id, err := strconv.Atoi(r.FormValue("_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -160,6 +173,29 @@ func update(w http.ResponseWriter, r *http.Request) {
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
 	}
+
+	if ctg.validate() == false {
+		type Data struct {
+			Auth       user.User
+			Categories []Category
+			Category   *Category
+		}
+
+		ctgs, err := AllCategories()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		data := Data{
+			Auth:       auth,
+			Categories: ctgs,
+			Category:   ctg,
+		}
+		helper.Render(w, "category_form.gohtml", data)
+		return
+	}
+
 	err = ctg.update()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)

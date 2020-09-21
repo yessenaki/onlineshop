@@ -2,11 +2,12 @@ package helper
 
 import (
 	"context"
+	"log"
 	"net/http"
 	"onlineshop/app/user"
+	"onlineshop/config"
 	"strconv"
 	"strings"
-	"text/template"
 	"time"
 )
 
@@ -49,13 +50,11 @@ func DefineAction(r *http.Request) string {
 	return action
 }
 
-func RenderTemplate(w http.ResponseWriter, path map[string]string, ctx interface{}) {
-	t := template.Must(template.ParseGlob("templates/layouts/*.gohtml"))
-	t = template.Must(t.ParseGlob("templates/" + path["folder"] + "/*.gohtml"))
-	err := t.ExecuteTemplate(w, path["file"], ctx)
+func Render(w http.ResponseWriter, filename string, data interface{}) {
+	err := config.Tpl.ExecuteTemplate(w, filename, data)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Println(err)
+		http.Error(w, "Sorry, something went wrong", http.StatusInternalServerError)
 	}
 }
 

@@ -255,11 +255,6 @@
     .input-group > .input-group-append .form-check .radio-custom:checked + .radio-custom-label:before {
       font-size: 0.5rem; }
   
-  /* Form components- Validation */
-  .invalid-feedback,
-  .valid-feedback {
-    font-size: 90%; }
-  
   /* Form components- Advanced */
   .select2-container--default .select2-selection--multiple {
     border-color: #ced4da;
