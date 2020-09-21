@@ -3,6 +3,7 @@ package size
 import (
 	"database/sql"
 	"onlineshop/config"
+	"strings"
 )
 
 // Size struct
@@ -12,6 +13,18 @@ type Size struct {
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
 	Type      int    `db:"type"`
+	Errors    map[string]string
+}
+
+func (s *Size) validate() bool {
+	s.Errors = make(map[string]string)
+	size := strings.TrimSpace(s.Size)
+
+	if size == "" || len(size) > 10 {
+		s.Errors["Size"] = "The field Size must be a string with a maximum length of 10"
+	}
+
+	return len(s.Errors) == 0
 }
 
 func (s *Size) store() (int, error) {

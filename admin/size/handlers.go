@@ -3,7 +3,6 @@ package size
 import (
 	"net/http"
 	"onlineshop/app/user"
-	"onlineshop/config"
 	"onlineshop/helper"
 	"strconv"
 )
@@ -18,11 +17,11 @@ func Handle() http.Handler {
 		case "create":
 			create(w, r, auth)
 		case "store":
-			store(w, r)
+			store(w, r, auth)
 		case "edit":
 			edit(w, r, auth)
 		case "update":
-			update(w, r)
+			update(w, r, auth)
 		case "destroy":
 			destroy(w, r)
 		case "notFound":
@@ -49,11 +48,8 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:  auth,
 		Sizes: sizes,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "size.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "size.gohtml", data)
+	return
 }
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
@@ -63,14 +59,11 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	data := Data{Auth: auth}
-	err := config.Tpl.ExecuteTemplate(w, "size_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "size_form.gohtml", data)
+	return
 }
 
-func store(w http.ResponseWriter, r *http.Request) {
+func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	t, err := strconv.Atoi(r.FormValue("type"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -80,6 +73,20 @@ func store(w http.ResponseWriter, r *http.Request) {
 	size := &Size{
 		Size: r.FormValue("size"),
 		Type: t,
+	}
+
+	if size.validate() == false {
+		type Data struct {
+			Auth user.User
+			Size *Size
+		}
+
+		data := Data{
+			Auth: auth,
+			Size: size,
+		}
+		helper.Render(w, "size_form.gohtml", data)
+		return
 	}
 
 	_, err = size.store()
@@ -103,6 +110,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
+
 	size, err := oneSize(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -117,19 +125,17 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth: auth,
 		Size: size,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "size_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "size_form.gohtml", data)
+	return
 }
 
-func update(w http.ResponseWriter, r *http.Request) {
+func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 	id, err := strconv.Atoi(r.FormValue("_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
+
 	t, err := strconv.Atoi(r.FormValue("type"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -141,6 +147,21 @@ func update(w http.ResponseWriter, r *http.Request) {
 		Size: r.FormValue("size"),
 		Type: t,
 	}
+
+	if size.validate() == false {
+		type Data struct {
+			Auth user.User
+			Size *Size
+		}
+
+		data := Data{
+			Auth: auth,
+			Size: size,
+		}
+		helper.Render(w, "size_form.gohtml", data)
+		return
+	}
+
 	err = size.update()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
