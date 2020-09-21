@@ -3,6 +3,7 @@ package brand
 import (
 	"database/sql"
 	"onlineshop/config"
+	"strings"
 )
 
 // Brand struct
@@ -11,6 +12,18 @@ type Brand struct {
 	Name      string `db:"name"`
 	CreatedAt string `db:"created_at"`
 	UpdatedAt string `db:"updated_at"`
+	Errors    map[string]string
+}
+
+func (b *Brand) validate() bool {
+	b.Errors = make(map[string]string)
+	name := strings.TrimSpace(b.Name)
+
+	if name == "" || len(name) > 30 {
+		b.Errors["Name"] = "The field Name must be a string with a maximum length of 30"
+	}
+
+	return len(b.Errors) == 0
 }
 
 func (b *Brand) store() (int, error) {

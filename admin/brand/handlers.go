@@ -3,7 +3,6 @@ package brand
 import (
 	"net/http"
 	"onlineshop/app/user"
-	"onlineshop/config"
 	"onlineshop/helper"
 	"strconv"
 )
@@ -18,11 +17,11 @@ func Handle() http.Handler {
 		case "create":
 			create(w, r, auth)
 		case "store":
-			store(w, r)
+			store(w, r, auth)
 		case "edit":
 			edit(w, r, auth)
 		case "update":
-			update(w, r)
+			update(w, r, auth)
 		case "destroy":
 			destroy(w, r)
 		case "notFound":
@@ -49,11 +48,8 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:   auth,
 		Brands: brands,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "brand.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "brand.gohtml", data)
+	return
 }
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
@@ -63,17 +59,29 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	data := Data{Auth: auth}
-	err := config.Tpl.ExecuteTemplate(w, "brand_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "brand_form.gohtml", data)
+	return
 }
 
-func store(w http.ResponseWriter, r *http.Request) {
+func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	brand := &Brand{
 		Name: r.FormValue("name"),
 	}
+
+	if brand.validate() == false {
+		type Data struct {
+			Auth  user.User
+			Brand *Brand
+		}
+
+		data := Data{
+			Auth:  auth,
+			Brand: brand,
+		}
+		helper.Render(w, "brand_form.gohtml", data)
+		return
+	}
+
 	_, err := brand.store()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -89,6 +97,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth  user.User
 		Brand Brand
 	}
+
 	id, err := strconv.Atoi(r.FormValue("id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -109,14 +118,11 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:  auth,
 		Brand: brand,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "brand_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "brand_form.gohtml", data)
+	return
 }
 
-func update(w http.ResponseWriter, r *http.Request) {
+func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 	id, err := strconv.Atoi(r.FormValue("_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -127,6 +133,21 @@ func update(w http.ResponseWriter, r *http.Request) {
 		ID:   id,
 		Name: r.FormValue("name"),
 	}
+
+	if brand.validate() == false {
+		type Data struct {
+			Auth  user.User
+			Brand *Brand
+		}
+
+		data := Data{
+			Auth:  auth,
+			Brand: brand,
+		}
+		helper.Render(w, "brand_form.gohtml", data)
+		return
+	}
+
 	err = brand.update()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)

@@ -21,8 +21,8 @@ func (ctg *Category) validate() bool {
 	ctg.Errors = make(map[string]string)
 	name := strings.TrimSpace(ctg.Name)
 
-	if name == "" || len(name) > 50 {
-		ctg.Errors["Name"] = "The field Name must be a string with a maximum length of 10"
+	if name == "" || len(name) > 30 {
+		ctg.Errors["Name"] = "The field Name must be a string with a maximum length of 30"
 	}
 
 	return len(ctg.Errors) == 0
