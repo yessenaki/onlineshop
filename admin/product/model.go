@@ -3,25 +3,52 @@ package product
 import (
 	"database/sql"
 	"onlineshop/config"
+	"strings"
 )
 
 // Product struct
 type Product struct {
-	ID         int     `db:"id"`
-	Title      string  `db:"title"`
-	Price      float64 `db:"price"`
-	OldPrice   float64 `db:"old_price"`
-	Gender     int     `db:"gender"`
-	IsKids     int     `db:"is_kids"`
-	IsNew      int     `db:"is_new"`
-	IsDiscount int     `db:"is_discount"`
-	DscPercent int     `db:"dsc_percent"`
-	BrandID    int     `db:"brand_id"`
-	ColorID    int     `db:"color_id"`
-	CategoryID int     `db:"category_id"`
-	SizeID     int     `db:"size_id"`
-	CreatedAt  string  `db:"created_at"`
-	UpdatedAt  string  `db:"updated_id"`
+	ID         int    `db:"id"`
+	Title      string `db:"title"`
+	Price      int    `db:"price"`
+	OldPrice   int    `db:"old_price"`
+	Gender     int    `db:"gender"`
+	IsKids     int    `db:"is_kids"`
+	IsNew      int    `db:"is_new"`
+	IsDiscount int    `db:"is_discount"`
+	DscPercent int    `db:"dsc_percent"`
+	BrandID    int    `db:"brand_id"`
+	ColorID    int    `db:"color_id"`
+	CategoryID int    `db:"category_id"`
+	SizeID     int    `db:"size_id"`
+	CreatedAt  string `db:"created_at"`
+	UpdatedAt  string `db:"updated_id"`
+	Errors     map[string]string
+}
+
+func (p *Product) validate() bool {
+	p.Errors = make(map[string]string)
+	title := strings.TrimSpace(p.Title)
+
+	if title == "" || len(title) > 50 {
+		p.Errors["Title"] = "The field Title must be a string with a maximum length of 50"
+	}
+
+	if p.Price == 0 || p.Price >= 1000000 {
+		p.Errors["Price"] = "Price must be more than 0.00 and less than 10000.00"
+	}
+
+	if p.IsDiscount == 1 {
+		if p.OldPrice == 0 || p.OldPrice >= 1000000 {
+			p.Errors["OldPrice"] = "Old price must be more than 0.00 and less than 10000.00"
+		}
+
+		if p.DscPercent == 0 || p.DscPercent > 100 {
+			p.Errors["DscPercent"] = "The discount percent must be more than 0% and less than 101%"
+		}
+	}
+
+	return len(p.Errors) == 0
 }
 
 func (p *Product) store() (int, error) {

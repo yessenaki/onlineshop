@@ -1,6 +1,7 @@
 package product
 
 import (
+	"math"
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
@@ -22,11 +23,11 @@ func Handle() http.Handler {
 		case "create":
 			create(w, r, auth)
 		case "store":
-			store(w, r)
+			store(w, r, auth)
 		case "edit":
 			edit(w, r, auth)
 		case "update":
-			update(w, r)
+			update(w, r, auth)
 		case "destroy":
 			destroy(w, r)
 		case "notFound":
@@ -53,11 +54,8 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Auth:     auth,
 		Products: prods,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "product.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "product.gohtml", data)
+	return
 }
 
 func create(w http.ResponseWriter, r *http.Request, auth user.User) {
@@ -101,25 +99,13 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Colors:     colors,
 		Sizes:      sizes,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "product_form.gohtml", data)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "product_form.gohtml", data)
+	return
 }
 
-func store(w http.ResponseWriter, r *http.Request) {
-	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	gender, err := strconv.Atoi(r.FormValue("gender"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+func store(w http.ResponseWriter, r *http.Request, auth user.User) {
+	price := priceToInt(r.FormValue("price"))
+	gender, _ := strconv.Atoi(r.FormValue("gender"))
 
 	var isKids int
 	if r.FormValue("is_kids") == "on" {
@@ -131,37 +117,18 @@ func store(w http.ResponseWriter, r *http.Request) {
 		isNew = 1
 	}
 
-	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	colorID, err := strconv.Atoi(r.FormValue("color_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	ctgID, err := strconv.Atoi(r.FormValue("category_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	sizeID, err := strconv.Atoi(r.FormValue("size_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	brandID, _ := strconv.Atoi(r.FormValue("brand_id"))
+	colorID, _ := strconv.Atoi(r.FormValue("color_id"))
+	ctgID, _ := strconv.Atoi(r.FormValue("category_id"))
+	sizeID, _ := strconv.Atoi(r.FormValue("size_id"))
 
 	var isDiscount int
 	var dscPercent int
-	var oldPrice float64
+	var oldPrice int
 	if r.FormValue("is_discount") == "on" {
 		isDiscount = 1
 		dscPercent, _ = strconv.Atoi(r.FormValue("dsc_percent"))
-		oldPrice, _ = strconv.ParseFloat(r.FormValue("old_price"), 64)
+		oldPrice = priceToInt(r.FormValue("old_price"))
 	}
 
 	prod := &Product{
@@ -178,9 +145,56 @@ func store(w http.ResponseWriter, r *http.Request) {
 		CategoryID: ctgID,
 		SizeID:     sizeID,
 	}
-	_, err = prod.store()
+
+	if prod.validate() == false {
+		type Data struct {
+			Auth       user.User
+			Product    *Product
+			Categories []category.Category
+			Brands     []brand.Brand
+			Colors     []color.Color
+			Sizes      []size.Size
+		}
+
+		ctgs, err := category.AllCategories()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		brands, err := brand.AllBrands()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		colors, err := color.AllColors()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		sizes, err := size.AllSizes()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		data := Data{
+			Auth:       auth,
+			Product:    prod,
+			Categories: ctgs,
+			Brands:     brands,
+			Colors:     colors,
+			Sizes:      sizes,
+		}
+		helper.Render(w, "product_form.gohtml", data)
+		return
+	}
+
+	_, err := prod.store()
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
@@ -249,18 +263,9 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 }
 
-func update(w http.ResponseWriter, r *http.Request) {
-	price, err := strconv.ParseFloat(r.FormValue("price"), 64)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	gender, err := strconv.Atoi(r.FormValue("gender"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+func update(w http.ResponseWriter, r *http.Request, auth user.User) {
+	price := priceToInt(r.FormValue("price"))
+	gender, _ := strconv.Atoi(r.FormValue("gender"))
 
 	var isKids int
 	if r.FormValue("is_kids") == "on" {
@@ -272,37 +277,18 @@ func update(w http.ResponseWriter, r *http.Request) {
 		isNew = 1
 	}
 
-	brandID, err := strconv.Atoi(r.FormValue("brand_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	colorID, err := strconv.Atoi(r.FormValue("color_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	ctgID, err := strconv.Atoi(r.FormValue("category_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	sizeID, err := strconv.Atoi(r.FormValue("size_id"))
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	brandID, _ := strconv.Atoi(r.FormValue("brand_id"))
+	colorID, _ := strconv.Atoi(r.FormValue("color_id"))
+	ctgID, _ := strconv.Atoi(r.FormValue("category_id"))
+	sizeID, _ := strconv.Atoi(r.FormValue("size_id"))
 
 	var isDiscount int
 	var dscPercent int
-	var oldPrice float64
+	var oldPrice int
 	if r.FormValue("is_discount") == "on" {
 		isDiscount = 1
 		dscPercent, _ = strconv.Atoi(r.FormValue("dsc_percent"))
-		oldPrice, _ = strconv.ParseFloat(r.FormValue("old_price"), 64)
+		oldPrice = priceToInt(r.FormValue("old_price"))
 	}
 
 	id, err := strconv.Atoi(r.FormValue("_id"))
@@ -325,6 +311,52 @@ func update(w http.ResponseWriter, r *http.Request) {
 		ColorID:    colorID,
 		CategoryID: ctgID,
 		SizeID:     sizeID,
+	}
+
+	if prod.validate() == false {
+		type Data struct {
+			Auth       user.User
+			Product    *Product
+			Categories []category.Category
+			Brands     []brand.Brand
+			Colors     []color.Color
+			Sizes      []size.Size
+		}
+
+		ctgs, err := category.AllCategories()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		brands, err := brand.AllBrands()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		colors, err := color.AllColors()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		sizes, err := size.AllSizes()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		data := Data{
+			Auth:       auth,
+			Product:    prod,
+			Categories: ctgs,
+			Brands:     brands,
+			Colors:     colors,
+			Sizes:      sizes,
+		}
+		helper.Render(w, "product_form.gohtml", data)
+		return
 	}
 
 	err = prod.update()
@@ -353,4 +385,11 @@ func destroy(w http.ResponseWriter, r *http.Request) {
 
 	http.Redirect(w, r, "/admin/products/", http.StatusSeeOther)
 	return
+}
+
+func priceToInt(price string) int {
+	fprice, _ := strconv.ParseFloat(price, 64)
+	rprice := math.Round(fprice * 100)
+
+	return int(rprice)
 }

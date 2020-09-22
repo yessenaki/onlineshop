@@ -21,13 +21,21 @@
                         {{end}}
                         <div class="form-group">
                             <label for="title">Title</label>
-                            <input type="text" name="title" class="form-control" id="title" placeholder="Enter title"
+                            <input type="text" name="title" id="title" placeholder="Enter title"
+                                class="form-control{{if .Product.Errors.Title}} is-invalid{{end}}"
                                 {{with .Product.Title}}value="{{.}}"{{end}}>
+                            {{with .Product.Errors.Title}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
                         </div>
                         <div class="form-group">
                             <label for="price">Price</label>
-                            <input type="number" name="price" class="form-control" id="price" placeholder="Enter price"
+                            <input type="number" name="price" id="price" placeholder="Enter price"
+                                class="form-control{{if .Product.Errors.Price}} is-invalid{{end}}"
                                 {{with .Product.Price}}value="{{.}}"{{end}}>
+                            {{with .Product.Errors.Price}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
                         </div>
                         <div class="form-group form-control-checkbox">
                             <label class="control outlined control-checkbox checkbox-primary">Is this for a discount sale?
@@ -37,13 +45,21 @@
                         </div>
                         <div class="form-group dsc-percent{{if eq .Product.IsDiscount 1}} show-input{{end}}">
                             <label for="dsc_percent">Discount percent</label>
-                            <input type="number" name="dsc_percent" class="form-control" placeholder="Enter discount percent"
+                            <input type="number" name="dsc_percent" placeholder="Enter discount percent"
+                                class="form-control{{if .Product.Errors.DscPercent}} is-invalid{{end}}"
                                 {{with .Product.DscPercent}}value="{{.}}"{{end}}>
+                            {{with .Product.Errors.DscPercent}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
                         </div>
                         <div class="form-group old-price{{if eq .Product.IsDiscount 1}} show-input{{end}}">
                             <label for="old_price">Old price</label>
-                            <input type="number" name="old_price" class="form-control" placeholder="Enter old price"
+                            <input type="number" name="old_price" placeholder="Enter old price"
+                                class="form-control{{if .Product.Errors.OldPrice}} is-invalid{{end}}"
                                 {{with .Product.OldPrice}}value="{{.}}"{{end}}>
+                            {{with .Product.Errors.OldPrice}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
                         </div>
                         <div class="form-group">
                             <label for="category_id">Category</label>

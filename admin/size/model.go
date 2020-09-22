@@ -54,7 +54,7 @@ func (s *Size) destroy() error {
 }
 
 func AllSizes() ([]Size, error) {
-	rows, err := config.DB.Query("SELECT * FROM sizes")
+	rows, err := config.DB.Query("SELECT * FROM sizes ORDER BY id")
 	if err != nil {
 		return nil, err
 	}
