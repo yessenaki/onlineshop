@@ -23,7 +23,7 @@ func DefineAction(r *http.Request) string {
 
 	action := "notAllowed"
 	switch r.Method {
-	case "GET":
+	case http.MethodGet:
 		idExists := false
 		if id, ok := r.URL.Query()["id"]; ok {
 			if _, err := strconv.Atoi(id[0]); err == nil {
@@ -39,11 +39,11 @@ func DefineAction(r *http.Request) string {
 		} else {
 			action = "index"
 		}
-	case "POST":
+	case http.MethodPost:
 		action = "store"
-	case "PUT":
+	case http.MethodPut:
 		action = "update"
-	case "DELETE":
+	case http.MethodDelete:
 		action = "destroy"
 	}
 
