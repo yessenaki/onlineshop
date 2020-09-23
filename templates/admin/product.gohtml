@@ -36,8 +36,8 @@
                                     <td>
                                         <a href="/admin/products/?action=edit&id={{.ID}}">{{.Title}}</a>
                                     </td>
-                                    <td>{{.Price}}</td>
-                                    <td>{{.OldPrice}}</td>
+                                    <td>${{fmtprice .Price}}</td>
+                                    <td>${{fmtprice .OldPrice}}</td>
                                     <td>{{if eq .Gender 0}}Male{{else}}Female{{end}}</td>
                                     <td>{{if eq .IsKids 0}}No{{else}}Yes{{end}}</td>
                                     <td>{{if eq .IsNew 0}}No{{else}}Yes{{end}}</td>

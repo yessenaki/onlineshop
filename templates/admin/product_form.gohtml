@@ -32,7 +32,7 @@
                             <label for="price">Price</label>
                             <input type="number" name="price" id="price" placeholder="Enter price"
                                 class="form-control{{if .Product.Errors.Price}} is-invalid{{end}}"
-                                {{with .Product.Price}}value="{{.}}"{{end}}>
+                                {{with .Product.Price}}value="{{fmtprice .}}"{{end}}>
                             {{with .Product.Errors.Price}}
                             <div class="invalid-feedback">{{.}}</div>
                             {{end}}
@@ -56,7 +56,7 @@
                             <label for="old_price">Old price</label>
                             <input type="number" name="old_price" placeholder="Enter old price"
                                 class="form-control{{if .Product.Errors.OldPrice}} is-invalid{{end}}"
-                                {{with .Product.OldPrice}}value="{{.}}"{{end}}>
+                                {{with .Product.OldPrice}}value="{{fmtprice .}}"{{end}}>
                             {{with .Product.Errors.OldPrice}}
                             <div class="invalid-feedback">{{.}}</div>
                             {{end}}
