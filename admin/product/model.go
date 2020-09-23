@@ -24,6 +24,10 @@ type Product struct {
 	SizeID     int       `db:"size_id"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_id"`
+	BrandName  string    `db:"brand_name"`
+	ColorName  string    `db:"color_name"`
+	CtgName    string    `db:"ctg_name"`
+	SizeName   string    `db:"size_name"`
 	Errors     map[string]string
 }
 
@@ -57,8 +61,9 @@ func (p *Product) store() (int, error) {
 	sqlStatement := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
 		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id`
-	err := config.DB.QueryRow(sqlStatement, p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount,
-		p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID).Scan(&lastInsertedID)
+	err := config.DB.QueryRow(sqlStatement,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID,
+	).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -68,8 +73,9 @@ func (p *Product) store() (int, error) {
 func (p *Product) update() error {
 	sqlStatement := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7,
 		dsc_percent=$8, brand_id=$9, color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0) WHERE id=$13`
-	_, err := config.DB.Exec(sqlStatement, p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount,
-		p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.ID)
+	_, err := config.DB.Exec(sqlStatement,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.ID,
+	)
 	if err != nil {
 		return err
 	}
@@ -85,7 +91,17 @@ func (p *Product) destroy() error {
 }
 
 func allProducts() ([]Product, error) {
-	rows, err := config.DB.Query("SELECT * FROM products")
+	sqlStatement := `SELECT p.*, b.name as brand_name, c.name as color_name, ctg.name as ctg_name, s.size as size_name
+		FROM products as p
+		INNER JOIN brands as b
+		ON p.brand_id=b.id
+		INNER JOIN colors as c
+		ON p.color_id=c.id
+		INNER JOIN categories as ctg
+		ON p.category_id=ctg.id
+		INNER JOIN sizes as s
+		ON p.size_id=s.id`
+	rows, err := config.DB.Query(sqlStatement)
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +113,7 @@ func allProducts() ([]Product, error) {
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
 			&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
+			&prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
 		)
 		if err != nil {
 			return nil, err

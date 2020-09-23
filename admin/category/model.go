@@ -56,10 +56,7 @@ func (ctg *Category) destroy() error {
 }
 
 func AllCategories() ([]Category, error) {
-	sqlStatement := `SELECT c1.id, c1.name, c1.parent_id, c1.created_at, c1.updated_at, c2.name as parent_name
-		FROM categories as c1
-		LEFT OUTER JOIN categories as c2
-		ON c1.parent_id=c2.id`
+	sqlStatement := `SELECT c1.*, c2.name as parent_name FROM categories as c1 LEFT OUTER JOIN categories as c2 ON c1.parent_id=c2.id`
 	rows, err := config.DB.Query(sqlStatement)
 	if err != nil {
 		return nil, err
