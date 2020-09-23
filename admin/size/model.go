@@ -4,15 +4,16 @@ import (
 	"database/sql"
 	"onlineshop/config"
 	"strings"
+	"time"
 )
 
 // Size struct
 type Size struct {
-	ID        int    `db:"id"`
-	Size      string `db:"size"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
-	Type      int    `db:"type"`
+	ID        int       `db:"id"`
+	Size      string    `db:"size"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+	Type      int       `db:"type"`
 	Errors    map[string]string
 }
 

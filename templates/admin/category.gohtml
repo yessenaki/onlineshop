@@ -27,8 +27,8 @@
                                         <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
                                     </td>
                                     <td>{{.ParentName}}</td>
-                                    <td>{{.CreatedAt}}</td>
-                                    <td>{{.UpdatedAt}}</td>
+                                    <td>{{fmtdt .CreatedAt}}</td>
+                                    <td>{{fmtdt .UpdatedAt}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>

@@ -47,8 +47,8 @@
                                     <td>{{.ColorID}}</td>
                                     <td>{{.CategoryID}}</td>
                                     <td>{{.SizeID}}</td>
-                                    <td>{{.CreatedAt}}</td>
-                                    <td>{{.UpdatedAt}}</td>
+                                    <td>{{fmtdt .CreatedAt}}</td>
+                                    <td>{{fmtdt .UpdatedAt}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>

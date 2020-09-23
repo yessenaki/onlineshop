@@ -4,14 +4,15 @@ import (
 	"database/sql"
 	"onlineshop/config"
 	"strings"
+	"time"
 )
 
 // Color struct
 type Color struct {
-	ID        int    `db:"id"`
-	Name      string `db:"name"`
-	CreatedAt string `db:"created_at"`
-	UpdatedAt string `db:"updated_at"`
+	ID        int       `db:"id"`
+	Name      string    `db:"name"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 	Errors    map[string]string
 }
 

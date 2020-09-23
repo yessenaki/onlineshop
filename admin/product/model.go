@@ -4,25 +4,26 @@ import (
 	"database/sql"
 	"onlineshop/config"
 	"strings"
+	"time"
 )
 
 // Product struct
 type Product struct {
-	ID         int    `db:"id"`
-	Title      string `db:"title"`
-	Price      int    `db:"price"`
-	OldPrice   int    `db:"old_price"`
-	Gender     int    `db:"gender"`
-	IsKids     int    `db:"is_kids"`
-	IsNew      int    `db:"is_new"`
-	IsDiscount int    `db:"is_discount"`
-	DscPercent int    `db:"dsc_percent"`
-	BrandID    int    `db:"brand_id"`
-	ColorID    int    `db:"color_id"`
-	CategoryID int    `db:"category_id"`
-	SizeID     int    `db:"size_id"`
-	CreatedAt  string `db:"created_at"`
-	UpdatedAt  string `db:"updated_id"`
+	ID         int       `db:"id"`
+	Title      string    `db:"title"`
+	Price      int       `db:"price"`
+	OldPrice   int       `db:"old_price"`
+	Gender     int       `db:"gender"`
+	IsKids     int       `db:"is_kids"`
+	IsNew      int       `db:"is_new"`
+	IsDiscount int       `db:"is_discount"`
+	DscPercent int       `db:"dsc_percent"`
+	BrandID    int       `db:"brand_id"`
+	ColorID    int       `db:"color_id"`
+	CategoryID int       `db:"category_id"`
+	SizeID     int       `db:"size_id"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_id"`
 	Errors     map[string]string
 }
 

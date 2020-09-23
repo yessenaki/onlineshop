@@ -31,8 +31,8 @@
                                     {{else}}
                                     <td>Shoe</td>
                                     {{end}}
-                                    <td>{{.CreatedAt}}</td>
-                                    <td>{{.UpdatedAt}}</td>
+                                    <td>{{fmtdt .CreatedAt}}</td>
+                                    <td>{{fmtdt .UpdatedAt}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>

@@ -4,16 +4,17 @@ import (
 	"database/sql"
 	"onlineshop/config"
 	"strings"
+	"time"
 )
 
 // Category struct
 type Category struct {
-	ID         int    `db:"id"`
-	Name       string `db:"name"`
-	ParentID   int    `db:"parent_id"`
-	CreatedAt  string `db:"created_at"`
-	UpdatedAt  string `db:"updated_at"`
-	ParentName string `db:"parent_name"`
+	ID         int       `db:"id"`
+	Name       string    `db:"name"`
+	ParentID   int       `db:"parent_id"`
+	CreatedAt  time.Time `db:"created_at"`
+	UpdatedAt  time.Time `db:"updated_at"`
+	ParentName string    `db:"parent_name"`
 	Errors     map[string]string
 }
 
