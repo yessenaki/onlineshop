@@ -14,7 +14,7 @@
                     {{end}}
                 </div>
                 <div class="card-body">
-                    <form action="/admin/products/" method="POST" novalidate>
+                    <form action="/admin/products/" method="POST" enctype="multipart/form-data" novalidate>
                         {{with .Product.ID}}
                         <input type="hidden" name="_method" value="PUT">
                         <input type="hidden" name="_id" value="{{.}}">
@@ -112,6 +112,13 @@
                                 <div class="control-indicator"></div>
                             </label>
                         </div>
+                        <div class="form-group">
+                            <label for="image">Upload image</label>
+                            <input type="file" class="form-control-file{{if .Product.Errors.Image}} is-invalid{{end}}" name="image" id="image">
+                            {{with .Product.Errors.Image}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
+                        </div>
                         {{/* <div class="form-group">
                             <label for="exampleFormControlInput1">Email address</label>
                             <input type="email" class="form-control" id="exampleFormControlInput1" placeholder="Enter Email">
@@ -124,10 +131,6 @@
                         <div class="form-group">
                             <label for="exampleFormControlTextarea1">Example textarea</label>
                             <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleFormControlFile1">Example file input</label>
-                            <input type="file" class="form-control-file" id="exampleFormControlFile1">
                         </div>
                         <div class="form-group">
                             <label for="multiple_select">States</label>

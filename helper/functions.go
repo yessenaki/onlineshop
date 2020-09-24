@@ -58,6 +58,15 @@ func Render(w http.ResponseWriter, filename string, data interface{}) {
 	}
 }
 
+func Contains(a []string, x string) bool {
+	for _, n := range a {
+		if x == n {
+			return true
+		}
+	}
+	return false
+}
+
 func currentTime() string {
 	t := time.Now()
 	datetime := t.Format("2006-01-02 15:04:05")

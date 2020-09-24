@@ -2,7 +2,9 @@ package product
 
 import (
 	"database/sql"
+	"net/http"
 	"onlineshop/config"
+	"onlineshop/helper"
 	"strings"
 	"time"
 )
@@ -24,6 +26,7 @@ type Product struct {
 	SizeID     int       `db:"size_id"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_id"`
+	Image      string    `db:"image"`
 	BrandName  string    `db:"brand_name"`
 	ColorName  string    `db:"color_name"`
 	CtgName    string    `db:"ctg_name"`
@@ -31,7 +34,7 @@ type Product struct {
 	Errors     map[string]string
 }
 
-func (p *Product) validate() bool {
+func (p *Product) validate(r *http.Request) bool {
 	p.Errors = make(map[string]string)
 	title := strings.TrimSpace(p.Title)
 
@@ -53,16 +56,27 @@ func (p *Product) validate() bool {
 		}
 	}
 
+	_, fileHeader, err := r.FormFile("image")
+	exts := []string{"png", "jpg", "jpeg"}
+	if err == http.ErrMissingFile {
+		p.Errors["Image"] = "Please choose an image file"
+	} else {
+		ext := strings.Split(fileHeader.Filename, ".")[1]
+		if fileHeader.Size > 2<<20 || helper.Contains(exts, ext) == false {
+			p.Errors["Image"] = "Your image must be in png, jpg, jpeg format and must not exceed 2MB"
+		}
+	}
+
 	return len(p.Errors) == 0
 }
 
 func (p *Product) store() (int, error) {
 	var lastInsertedID int
 	sqlStatement := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
-		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id`
+		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at, image)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13) RETURNING id`
 	err := config.DB.QueryRow(sqlStatement,
-		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image,
 	).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
@@ -113,7 +127,7 @@ func allProducts() ([]Product, error) {
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
 			&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
-			&prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
+			&prod.Image, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
 		)
 		if err != nil {
 			return nil, err
@@ -131,7 +145,7 @@ func oneProduct(id int) (Product, error) {
 	prod := Product{}
 	err := config.DB.QueryRow("SELECT * FROM products WHERE id=$1", id).Scan(
 		&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
-		&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
+		&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {

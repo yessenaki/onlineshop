@@ -1,6 +1,10 @@
 package product
 
 import (
+	"crypto/sha1"
+	"fmt"
+	"io"
+	"log"
 	"math"
 	"net/http"
 	"onlineshop/admin/brand"
@@ -10,7 +14,10 @@ import (
 	"onlineshop/app/user"
 	"onlineshop/config"
 	"onlineshop/helper"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
 )
 
 func Handle() http.Handler {
@@ -46,6 +53,7 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 
 	prods, err := allProducts()
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -146,7 +154,7 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		SizeID:     sizeID,
 	}
 
-	if prod.validate() == false {
+	if prod.validate(r) == false {
 		type Data struct {
 			Auth       user.User
 			Product    *Product
@@ -192,8 +200,17 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	_, err := prod.store()
+	path, err := uploadImage(r)
 	if err != nil {
+		log.Println(err)
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+	prod.Image = path
+
+	_, err = prod.store()
+	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -313,7 +330,7 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		SizeID:     sizeID,
 	}
 
-	if prod.validate() == false {
+	if prod.validate(r) == false {
 		type Data struct {
 			Auth       user.User
 			Product    *Product
@@ -392,4 +409,37 @@ func priceToInt(price string) int {
 	rprice := math.Round(fprice * 100)
 
 	return int(rprice)
+}
+
+func uploadImage(r *http.Request) (string, error) {
+	file, fileHeader, err := r.FormFile("image")
+	if err != nil && err != http.ErrMissingFile {
+		return "", err
+	}
+	defer file.Close()
+	fmt.Printf("Uploaded File: %+v\n", fileHeader.Filename)
+	fmt.Printf("File Size: %+v\n", fileHeader.Size)
+	fmt.Printf("MIME Header: %+v\n", fileHeader.Header)
+
+	ext := strings.Split(fileHeader.Filename, ".")[1]
+	hash := sha1.New()
+	io.Copy(hash, file)
+	filename := fmt.Sprintf("%x", hash.Sum(nil)) + "." + ext
+
+	wd, err := os.Getwd()
+	if err != nil {
+		return "", err
+	}
+	path := filepath.Join(wd, "static", "uploads", filename)
+
+	newFile, err := os.Create(path)
+	if err != nil {
+		return "", err
+	}
+	defer newFile.Close()
+
+	file.Seek(0, 0)
+	io.Copy(newFile, file)
+
+	return "/static/uploads/" + filename, nil
 }
