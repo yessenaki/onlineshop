@@ -27,6 +27,7 @@ type Product struct {
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_id"`
 	Image      string    `db:"image"`
+	ImageName  string    `db:"image_name"`
 	BrandName  string    `db:"brand_name"`
 	ColorName  string    `db:"color_name"`
 	CtgName    string    `db:"ctg_name"`
@@ -59,7 +60,9 @@ func (p *Product) validate(r *http.Request) bool {
 	_, fileHeader, err := r.FormFile("image")
 	exts := []string{"png", "jpg", "jpeg"}
 	if err == http.ErrMissingFile {
-		p.Errors["Image"] = "Please choose an image file"
+		if r.Method == http.MethodPost {
+			p.Errors["Image"] = "Please choose an image file"
+		}
 	} else {
 		ext := strings.Split(fileHeader.Filename, ".")[1]
 		if fileHeader.Size > 2<<20 || helper.Contains(exts, ext) == false {
@@ -73,10 +76,10 @@ func (p *Product) validate(r *http.Request) bool {
 func (p *Product) store() (int, error) {
 	var lastInsertedID int
 	sqlStatement := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
-		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at, image)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13) RETURNING id`
+		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at, image, image_name)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13, $14) RETURNING id`
 	err := config.DB.QueryRow(sqlStatement,
-		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName,
 	).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
@@ -85,10 +88,10 @@ func (p *Product) store() (int, error) {
 }
 
 func (p *Product) update() error {
-	sqlStatement := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7,
-		dsc_percent=$8, brand_id=$9, color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0) WHERE id=$13`
+	sqlStatement := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7, dsc_percent=$8,
+		brand_id=$9, color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0), image=$13, image_name=$14 WHERE id=$15`
 	_, err := config.DB.Exec(sqlStatement,
-		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.ID,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName, p.ID,
 	)
 	if err != nil {
 		return err
@@ -127,7 +130,7 @@ func allProducts() ([]Product, error) {
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
 			&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
-			&prod.Image, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
+			&prod.Image, &prod.ImageName, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
 		)
 		if err != nil {
 			return nil, err
@@ -144,8 +147,8 @@ func allProducts() ([]Product, error) {
 func oneProduct(id int) (Product, error) {
 	prod := Product{}
 	err := config.DB.QueryRow("SELECT * FROM products WHERE id=$1", id).Scan(
-		&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
-		&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image,
+		&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount, &prod.DscPercent,
+		&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image, &prod.ImageName,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {

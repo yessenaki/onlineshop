@@ -279,6 +279,15 @@
 .old-price {
   display: none;
 }
+
 .show-input {
   display: block;
+}
+
+.form-image {
+  margin-top: 15px;
+}
+
+.form-image img {
+  height: 160px;
 }

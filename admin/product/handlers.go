@@ -12,7 +12,6 @@ import (
 	"onlineshop/admin/color"
 	"onlineshop/admin/size"
 	"onlineshop/app/user"
-	"onlineshop/config"
 	"onlineshop/helper"
 	"os"
 	"path/filepath"
@@ -200,13 +199,14 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	path, err := uploadImage(r)
+	fileInfo, err := uploadImage(r)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	prod.Image = path
+	prod.Image = fileInfo["image"]
+	prod.ImageName = fileInfo["image_name"]
 
 	_, err = prod.store()
 	if err != nil {
@@ -237,6 +237,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 
 	prod, err := oneProduct(id)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -273,11 +274,8 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Colors:     colors,
 		Sizes:      sizes,
 	}
-	err = config.Tpl.ExecuteTemplate(w, "product_form.gohtml", data)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+	helper.Render(w, "product_form.gohtml", data)
+	return
 }
 
 func update(w http.ResponseWriter, r *http.Request, auth user.User) {
@@ -328,6 +326,8 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		ColorID:    colorID,
 		CategoryID: ctgID,
 		SizeID:     sizeID,
+		Image:      r.FormValue("old_image"),
+		ImageName:  r.FormValue("old_image_name"),
 	}
 
 	if prod.validate(r) == false {
@@ -376,6 +376,16 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
+	imageInfo, err := uploadImage(r)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+	if imageInfo != nil {
+		prod.Image = imageInfo["image"]
+		prod.ImageName = imageInfo["image_name"]
+	}
+
 	err = prod.update()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -411,15 +421,15 @@ func priceToInt(price string) int {
 	return int(rprice)
 }
 
-func uploadImage(r *http.Request) (string, error) {
+func uploadImage(r *http.Request) (map[string]string, error) {
 	file, fileHeader, err := r.FormFile("image")
 	if err != nil && err != http.ErrMissingFile {
-		return "", err
+		return nil, err
+	}
+	if err == http.ErrMissingFile && r.Method == http.MethodPut {
+		return nil, nil
 	}
 	defer file.Close()
-	fmt.Printf("Uploaded File: %+v\n", fileHeader.Filename)
-	fmt.Printf("File Size: %+v\n", fileHeader.Size)
-	fmt.Printf("MIME Header: %+v\n", fileHeader.Header)
 
 	ext := strings.Split(fileHeader.Filename, ".")[1]
 	hash := sha1.New()
@@ -428,18 +438,22 @@ func uploadImage(r *http.Request) (string, error) {
 
 	wd, err := os.Getwd()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	path := filepath.Join(wd, "static", "uploads", filename)
 
 	newFile, err := os.Create(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer newFile.Close()
 
 	file.Seek(0, 0)
 	io.Copy(newFile, file)
+	fileInfo := map[string]string{
+		"image":      "/assets/uploads/" + filename,
+		"image_name": fileHeader.Filename,
+	}
 
-	return "/static/uploads/" + filename, nil
+	return fileInfo, nil
 }
