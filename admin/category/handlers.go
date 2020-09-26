@@ -74,15 +74,13 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 }
 
 func store(w http.ResponseWriter, r *http.Request, auth user.User) {
-	parentID, err := strconv.Atoi(r.FormValue("parent_id"))
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	parentID, _ := strconv.Atoi(r.FormValue("parent_id"))
+	gender, _ := strconv.Atoi(r.FormValue("gender"))
 
 	ctg := &Category{
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
+		Gender:   gender,
 	}
 
 	if ctg.validate() == false {
@@ -107,7 +105,7 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	_, err = ctg.store()
+	_, err := ctg.store()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -156,22 +154,15 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 }
 
 func update(w http.ResponseWriter, r *http.Request, auth user.User) {
-	id, err := strconv.Atoi(r.FormValue("_id"))
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-
-	parentID, err := strconv.Atoi(r.FormValue("parent_id"))
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
+	id, _ := strconv.Atoi(r.FormValue("_id"))
+	parentID, _ := strconv.Atoi(r.FormValue("parent_id"))
+	gender, _ := strconv.Atoi(r.FormValue("gender"))
 
 	ctg := &Category{
 		ID:       id,
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
+		Gender:   gender,
 	}
 
 	if ctg.validate() == false {
@@ -196,7 +187,7 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	err = ctg.update()
+	err := ctg.update()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

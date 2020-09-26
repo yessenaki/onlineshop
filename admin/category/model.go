@@ -14,6 +14,7 @@ type Category struct {
 	ParentID   int       `db:"parent_id"`
 	CreatedAt  time.Time `db:"created_at"`
 	UpdatedAt  time.Time `db:"updated_at"`
+	Gender     int       `db:"gender"`
 	ParentName string    `db:"parent_name"`
 	Errors     map[string]string
 }
@@ -31,8 +32,8 @@ func (ctg *Category) validate() bool {
 
 func (ctg *Category) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := "INSERT INTO categories (name, parent_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID).Scan(&lastInsertedID)
+	sqlStatement := "INSERT INTO categories (name, parent_id, created_at, updated_at, gender) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0), $3) RETURNING id"
+	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID, ctg.Gender).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -40,7 +41,7 @@ func (ctg *Category) store() (int, error) {
 }
 
 func (ctg *Category) update() error {
-	_, err := config.DB.Exec("UPDATE categories SET name=$1, parent_id=$2, updated_at=NOW()::timestamp(0) WHERE id=$3", ctg.Name, ctg.ParentID, ctg.ID)
+	_, err := config.DB.Exec("UPDATE categories SET name=$1, parent_id=$2, updated_at=NOW()::timestamp(0), gender=$3 WHERE id=$4", ctg.Name, ctg.ParentID, ctg.Gender, ctg.ID)
 	if err != nil {
 		return err
 	}
@@ -67,7 +68,7 @@ func AllCategories() ([]Category, error) {
 	for rows.Next() {
 		ctg := Category{}
 		var parentName sql.NullString
-		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &parentName)
+		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender, &parentName)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +86,7 @@ func AllCategories() ([]Category, error) {
 func oneCategory(id int) (Category, error) {
 	ctg := Category{}
 	row := config.DB.QueryRow("SELECT * FROM categories WHERE id=$1", id)
-	err := row.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt)
+	err := row.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ctg, nil
