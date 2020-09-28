@@ -15,6 +15,11 @@ type CtxData struct {
 
 func Index() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
+			return
+		}
+
 		ctxData := CtxData{
 			AuthUser: helper.AuthUserFromContext(r.Context()),
 		}
