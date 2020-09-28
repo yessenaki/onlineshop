@@ -76,11 +76,13 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	parentID, _ := strconv.Atoi(r.FormValue("parent_id"))
 	gender, _ := strconv.Atoi(r.FormValue("gender"))
+	isKids, _ := strconv.Atoi(r.FormValue("is_kids"))
 
 	ctg := &Category{
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
 		Gender:   gender,
+		IsKids:   isKids,
 	}
 
 	if ctg.validate() == false {
@@ -157,12 +159,14 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 	id, _ := strconv.Atoi(r.FormValue("_id"))
 	parentID, _ := strconv.Atoi(r.FormValue("parent_id"))
 	gender, _ := strconv.Atoi(r.FormValue("gender"))
+	isKids, _ := strconv.Atoi(r.FormValue("is_kids"))
 
 	ctg := &Category{
 		ID:       id,
 		Name:     r.FormValue("name"),
 		ParentID: parentID,
 		Gender:   gender,
+		IsKids:   isKids,
 	}
 
 	if ctg.validate() == false {
