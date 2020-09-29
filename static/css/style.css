@@ -1498,23 +1498,27 @@ ol {
 	border-radius: 0;
 }
 
+.sidebar__brand,
 .sidebar__sizes,
 .sidebar__color {
 	margin-bottom: 40px;
 }
 
+.sidebar__brand .section-title,
 .sidebar__sizes .section-title,
 .sidebar__color .section-title {
 	margin-bottom: 35px;
 }
 
+.sidebar__brand .section-title h4,
 .sidebar__sizes .section-title h4,
 .sidebar__color .section-title h4 {
 	font-size: 18px;
 }
 
-.sidebar__sizes .size__list label,
-.sidebar__color .size__list label {
+.sidebar__brand .checkbox__list label,
+.sidebar__sizes .checkbox__list label,
+.sidebar__color .checkbox__list label {
 	display: block;
 	padding-left: 20px;
 	font-size: 14px;
@@ -1524,25 +1528,29 @@ ol {
 	cursor: pointer;
 }
 
-.sidebar__sizes .size__list label input,
-.sidebar__color .size__list label input {
+.sidebar__brand .checkbox__list label input,
+.sidebar__sizes .checkbox__list label input,
+.sidebar__color .checkbox__list label input {
 	position: absolute;
 	visibility: hidden;
 }
 
-.sidebar__sizes .size__list label input:checked~.checkmark,
-.sidebar__color .size__list label input:checked~.checkmark {
+.sidebar__brand .checkbox__list label input:checked~.checkmark,
+.sidebar__sizes .checkbox__list label input:checked~.checkmark,
+.sidebar__color .checkbox__list label input:checked~.checkmark {
 	border-color: #ca1515;
 }
 
-.sidebar__sizes .size__list label input:checked~.checkmark:after,
-.sidebar__color .size__list label input:checked~.checkmark:after {
+.sidebar__brand .checkbox__list label input:checked~.checkmark:after,
+.sidebar__sizes .checkbox__list label input:checked~.checkmark:after,
+.sidebar__color .checkbox__list label input:checked~.checkmark:after {
 	border-color: #ca1515;
 	opacity: 1;
 }
 
-.sidebar__sizes .size__list label .checkmark,
-.sidebar__color .size__list label .checkmark {
+.sidebar__brand .checkbox__list label .checkmark,
+.sidebar__sizes .checkbox__list label .checkmark,
+.sidebar__color .checkbox__list label .checkmark {
 	position: absolute;
 	left: 0;
 	top: 4px;
@@ -1552,8 +1560,9 @@ ol {
 	border-radius: 2px;
 }
 
-.sidebar__sizes .size__list label .checkmark:after,
-.sidebar__color .size__list label .checkmark:after {
+.sidebar__brand .checkbox__list label .checkmark:after,
+.sidebar__sizes .checkbox__list label .checkmark:after,
+.sidebar__color .checkbox__list label .checkmark:after {
 	position: absolute;
 	left: 0px;
 	top: -2px;
@@ -1566,10 +1575,6 @@ ol {
 	transform: rotate(127deg);
 	opacity: 0;
 	content: "";
-}
-
-.sidebar__color .color__list label {
-	text-transform: capitalize;
 }
 
 .pagination__option a {
