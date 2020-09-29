@@ -12,15 +12,15 @@
                         </div>
                         <div class="categories__accordion">
                             <div class="accordion" id="accordionExample">
-                                {{range $k, $rlt := .Rlts}}
+                                {{range $k, $rc := .RltCategories}}
                                 <div class="card">
                                     <div class="card-heading{{if eq $k 0}} active{{end}}">
-                                        <a data-toggle="collapse" data-target="#collapse{{$rlt.Parent.ID}}">{{$rlt.Parent.Name}}</a>
+                                        <a data-toggle="collapse" data-target="#collapse{{$rc.Parent.ID}}">{{$rc.Parent.Name}}</a>
                                     </div>
-                                    <div id="collapse{{$rlt.Parent.ID}}" class="collapse{{if eq $k 0}} show{{end}}" data-parent="#accordionExample">
+                                    <div id="collapse{{$rc.Parent.ID}}" class="collapse{{if eq $k 0}} show{{end}}" data-parent="#accordionExample">
                                         <div class="card-body">
                                             <ul>
-                                                {{range $k2, $child := $rlt.Childs}}
+                                                {{range $child := $rc.Childs}}
                                                 <li><a href="/shop/">{{$child.Name}}</a></li>
                                                 {{end}}
                                             </ul>

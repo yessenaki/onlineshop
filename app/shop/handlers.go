@@ -8,8 +8,8 @@ import (
 	"onlineshop/helper"
 )
 
-// Relative = relative categories
-type Relative struct {
+// RltCategory = relative categories
+type RltCategory struct {
 	Parent category.Category
 	Childs []category.Category
 }
@@ -35,14 +35,16 @@ func Index() http.Handler {
 			ctgs, err := category.ByGenderAndKids(gender, isKids)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
 			}
+			rcs := createRelation(ctgs)
 
 			data := struct {
-				Auth user.User
-				Rlts []Relative
+				Auth          user.User
+				RltCategories []RltCategory
 			}{
-				Auth: auth,
-				Rlts: createRelation(ctgs),
+				Auth:          auth,
+				RltCategories: rcs,
 			}
 
 			helper.Render(w, "shop.gohtml", data)
@@ -56,12 +58,12 @@ func Index() http.Handler {
 	})
 }
 
-func createRelation(ctgs []category.Category) []Relative {
-	rlts := []Relative{}
+func createRelation(ctgs []category.Category) []RltCategory {
+	rcs := []RltCategory{}
 	for _, ctg := range ctgs {
 		if ctg.ParentID == 0 {
-			rlt := Relative{}
-			rlt.Parent = ctg
+			rc := RltCategory{}
+			rc.Parent = ctg
 			childs := []category.Category{}
 
 			for _, ctg2 := range ctgs {
@@ -70,10 +72,10 @@ func createRelation(ctgs []category.Category) []Relative {
 				}
 			}
 
-			rlt.Childs = childs
-			rlts = append(rlts, rlt)
+			rc.Childs = childs
+			rcs = append(rcs, rc)
 		}
 	}
 
-	return rlts
+	return rcs
 }
