@@ -14,6 +14,7 @@ type Color struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	Errors    map[string]string
+	Checked   bool
 }
 
 func (c *Color) validate() bool {
@@ -86,4 +87,35 @@ func oneColor(id int) (Color, error) {
 		return color, err
 	}
 	return color, nil
+}
+
+func Arrange(ids []int) ([]Color, error) {
+	rows, err := config.DB.Query("SELECT * FROM colors")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	colors := []Color{}
+	for rows.Next() {
+		color := Color{}
+		err := rows.Scan(&color.ID, &color.Name, &color.CreatedAt, &color.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range ids {
+			if id == color.ID {
+				color.Checked = true
+				break
+			}
+		}
+
+		colors = append(colors, color)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return colors, nil
 }

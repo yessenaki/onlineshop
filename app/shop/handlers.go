@@ -3,7 +3,10 @@ package shop
 import (
 	"io"
 	"net/http"
+	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
+	"onlineshop/admin/color"
+	"onlineshop/admin/size"
 	"onlineshop/app/user"
 	"onlineshop/helper"
 )
@@ -39,12 +42,39 @@ func Index() http.Handler {
 			}
 			rcs := createRelation(ctgs)
 
+			checkedBrands := helper.ListToSlice(r.FormValue("b"))
+			brands, err := brand.Arrange(checkedBrands)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			checkedSizes := helper.ListToSlice(r.FormValue("s"))
+			sizes, err := size.Arrange(checkedSizes)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			checkedColors := helper.ListToSlice(r.FormValue("c"))
+			colors, err := color.Arrange(checkedColors)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
 			data := struct {
 				Auth          user.User
 				RltCategories []RltCategory
+				Brands        []brand.Brand
+				Sizes         []size.Size
+				Colors        []color.Color
 			}{
 				Auth:          auth,
 				RltCategories: rcs,
+				Brands:        brands,
+				Sizes:         sizes,
+				Colors:        colors,
 			}
 
 			helper.Render(w, "shop.gohtml", data)

@@ -15,6 +15,7 @@ type Size struct {
 	UpdatedAt time.Time `db:"updated_at"`
 	Type      int       `db:"type"`
 	Errors    map[string]string
+	Checked   bool
 }
 
 func (s *Size) validate() bool {
@@ -87,4 +88,35 @@ func oneSize(id int) (Size, error) {
 		return size, err
 	}
 	return size, nil
+}
+
+func Arrange(ids []int) ([]Size, error) {
+	rows, err := config.DB.Query("SELECT * FROM sizes ORDER BY id")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	sizes := []Size{}
+	for rows.Next() {
+		size := Size{}
+		err := rows.Scan(&size.ID, &size.Size, &size.CreatedAt, &size.UpdatedAt, &size.Type)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range ids {
+			if id == size.ID {
+				size.Checked = true
+				break
+			}
+		}
+
+		sizes = append(sizes, size)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return sizes, nil
 }

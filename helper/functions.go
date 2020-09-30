@@ -67,6 +67,19 @@ func Contains(a []string, x string) bool {
 	return false
 }
 
+func ListToSlice(list string) []int {
+	l := strings.TrimLeft(list, "list:")
+	s := strings.Split(l, ":")
+	ids := []int{}
+
+	for _, v := range s {
+		id, _ := strconv.Atoi(v)
+		ids = append(ids, id)
+	}
+
+	return ids
+}
+
 func currentTime() string {
 	t := time.Now()
 	datetime := t.Format("2006-01-02 15:04:05")

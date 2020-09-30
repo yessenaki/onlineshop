@@ -14,6 +14,7 @@ type Brand struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	Errors    map[string]string
+	Checked   bool
 }
 
 func (b *Brand) validate() bool {
@@ -86,4 +87,35 @@ func oneBrand(id int) (Brand, error) {
 		return brand, err
 	}
 	return brand, nil
+}
+
+func Arrange(ids []int) ([]Brand, error) {
+	rows, err := config.DB.Query("SELECT * FROM brands")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	brands := []Brand{}
+	for rows.Next() {
+		brand := Brand{}
+		err := rows.Scan(&brand.ID, &brand.Name, &brand.CreatedAt, &brand.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, id := range ids {
+			if id == brand.ID {
+				brand.Checked = true
+				break
+			}
+		}
+
+		brands = append(brands, brand)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return brands, nil
 }
