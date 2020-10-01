@@ -1519,13 +1519,19 @@ ol {
 .sidebar__brand .checkbox__list label,
 .sidebar__sizes .checkbox__list label,
 .sidebar__color .checkbox__list label {
-	display: block;
+	display: none;
 	padding-left: 20px;
 	font-size: 14px;
 	text-transform: uppercase;
 	color: #444444;
 	position: relative;
 	cursor: pointer;
+}
+
+.sidebar__brand .checkbox__list label.show,
+.sidebar__sizes .checkbox__list label.show,
+.sidebar__color .checkbox__list label.show {
+	display: block;
 }
 
 .sidebar__brand .checkbox__list label input,
@@ -1575,6 +1581,12 @@ ol {
 	transform: rotate(127deg);
 	opacity: 0;
 	content: "";
+}
+
+.sidebar__brand .brand-more,
+.sidebar__sizes .sizes-more,
+.sidebar__color .color-more {
+	font-size: 14px;
 }
 
 .pagination__option a {

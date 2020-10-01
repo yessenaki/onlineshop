@@ -54,13 +54,14 @@
                         </div>
                         <div class="checkbox__list">
                             {{range .Brands}}
-                            <label for="brand{{.ID}}">
+                            <label for="brand{{.ID}}" class="{{if .Checked}}show{{end}}">
                                 {{.Name}}
                                 <input type="checkbox" id="brand{{.ID}}" name="brand" value="{{.ID}}" {{if .Checked}}checked{{end}}>
                                 <span class="checkmark"></span>
                             </label>
                             {{end}}
                         </div>
+                        <a href="#" class="brand-more" data-state="close">Show more</a>
                     </div>
                     <div class="sidebar__sizes">
                         <div class="section-title">
@@ -68,13 +69,14 @@
                         </div>
                         <div class="checkbox__list">
                             {{range .Sizes}}
-                            <label for="size{{.ID}}">
+                            <label for="size{{.ID}}" class="{{if .Checked}}show{{end}}">
                                 {{.Size}}
                                 <input type="checkbox" id="size{{.ID}}" name="size" value="{{.ID}}" {{if .Checked}}checked{{end}}>
                                 <span class="checkmark"></span>
                             </label>
                             {{end}}
                         </div>
+                        <a href="#" class="size-more" data-state="close">Show more</a>
                     </div>
                     <div class="sidebar__color">
                         <div class="section-title">
@@ -82,13 +84,14 @@
                         </div>
                         <div class="checkbox__list">
                             {{range .Colors}}
-                            <label for="color{{.ID}}">
+                            <label for="color{{.ID}}" class="{{if .Checked}}show{{end}}">
                                 {{.Name}}
                                 <input type="checkbox" id="color{{.ID}}" name="color" value="{{.ID}}" {{if .Checked}}checked{{end}}>
                                 <span class="checkmark"></span>
                             </label>
                             {{end}}
                         </div>
+                        <a href="#" class="color-more" data-state="close">Show more</a>
                     </div>
                 </div>
             </div>
