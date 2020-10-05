@@ -30,7 +30,7 @@ type Parent struct {
 }
 
 func ByParams(gender int, isKids int, ctgID int) ([]Parent, error) {
-	sql := "SELECT * FROM categories WHERE gender IN (0, $1) AND is_kids IN (0, $2) ORDER BY id"
+	sql := "SELECT * FROM categories WHERE gender IN (2, $1) AND is_kids IN (2, $2) ORDER BY id"
 
 	rows, err := config.DB.Query(sql, gender, isKids)
 	if err != nil {

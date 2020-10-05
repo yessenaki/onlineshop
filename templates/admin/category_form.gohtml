@@ -42,17 +42,17 @@
                         <div class="form-group">
                             <label for="gender">Gender</label>
                             <select name="gender" class="form-control" id="gender">
-                                <option value="0">Both</option>
-                                <option value="1" {{if eq .Category.Gender 1}}selected{{end}}>Male</option>
-                                <option value="2" {{if eq .Category.Gender 2}}selected{{end}}>Female</option>
+                                <option value="0" {{if eq .Category.Gender 0}}selected{{end}}>Male</option>
+                                <option value="1" {{if eq .Category.Gender 1}}selected{{end}}>Female</option>
+                                <option value="2" {{if eq .Category.Gender 2}}selected{{end}}>Both</option>
                             </select>
                         </div>
                         <div class="form-group">
                             <label for="is_kids">Is it for kids</label>
                             <select name="is_kids" class="form-control" id="is_kids">
-                                <option value="0">All</option>
+                                <option value="0" {{if eq .Category.IsKids 0}}selected{{end}}>No</option>
                                 <option value="1" {{if eq .Category.IsKids 1}}selected{{end}}>Yes</option>
-                                <option value="2" {{if eq .Category.IsKids 2}}selected{{end}}>No</option>
+                                <option value="2" {{if eq .Category.IsKids 2}}selected{{end}}>All</option>
                             </select>
                         </div>
                         <div class="form-footer pt-4 pt-5 mt-4 border-top">

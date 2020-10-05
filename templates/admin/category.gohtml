@@ -29,8 +29,8 @@
                                         <a href="/admin/categories/?action=edit&id={{.ID}}">{{.Name}}</a>
                                     </td>
                                     <td>{{.ParentName}}</td>
-                                    <td>{{if eq .Gender 1}}Male{{else if eq .Gender 2}}Female{{else}}Both{{end}}</td>
-                                    <td>{{if eq .IsKids 1}}Yes{{else if eq .IsKids 2}}No{{else}}All{{end}}</td>
+                                    <td>{{if eq .Gender 0}}Male{{else if eq .Gender 1}}Female{{else}}Both{{end}}</td>
+                                    <td>{{if eq .IsKids 0}}No{{else if eq .IsKids 1}}Yes{{else}}All{{end}}</td>
                                     <td>{{fmtdt .CreatedAt}}</td>
                                     <td>{{fmtdt .UpdatedAt}}</td>
                                 </tr>
