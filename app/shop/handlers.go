@@ -29,17 +29,17 @@ func Index() http.Handler {
 
 		if r.Method == http.MethodGet {
 			stype := "women" // shop type
-			gender := 2      // female
-			isKids := 2      // not for kids
+			gender := 1      // female
+			isKids := 0      // not for kids
 
 			if r.FormValue("t") == "men" {
 				stype = "men"
-				gender = 1
+				gender = 0
 			} else if r.FormValue("t") == "kids" {
 				stype = "kids"
 				isKids = 1
 				if r.FormValue("g") == "boy" {
-					gender = 1
+					gender = 0
 				}
 			}
 
@@ -72,19 +72,19 @@ func Index() http.Handler {
 				return
 			}
 
-			// params := map[string]interface{}{
-			// 	"gender": gender,
-			// 	"isKids": isKids,
-			// 	"ctgID":  ctgID,
-			// 	"brands": r.FormValue("b"),
-			// 	"sizes":  r.FormValue("s"),
-			// 	"colors": r.FormValue("c"),
-			// }
-			// prods, err := product.ByParams(params)
-			// if err != nil {
-			// 	http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			// 	return
-			// }
+			params := map[string]interface{}{
+				"gender": gender,
+				"isKids": isKids,
+				"ctgID":  ctgID,
+				"brands": r.FormValue("b"),
+				"sizes":  r.FormValue("s"),
+				"colors": r.FormValue("c"),
+			}
+			prods, err := product.ByParams(params)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
 
 			data := struct {
 				Header Header

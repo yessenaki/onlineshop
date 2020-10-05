@@ -2,9 +2,11 @@ package product
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"onlineshop/config"
 	"onlineshop/helper"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -108,7 +110,7 @@ func (p *Product) destroy() error {
 }
 
 func allProducts() ([]Product, error) {
-	sqlStatement := `SELECT p.*, b.name as brand_name, c.name as color_name, ctg.name as ctg_name, s.size as size_name
+	sql := `SELECT p.*, b.name as brand_name, c.name as color_name, ctg.name as ctg_name, s.size as size_name
 		FROM products as p
 		INNER JOIN brands as b
 		ON p.brand_id=b.id
@@ -118,7 +120,8 @@ func allProducts() ([]Product, error) {
 		ON p.category_id=ctg.id
 		INNER JOIN sizes as s
 		ON p.size_id=s.id`
-	rows, err := config.DB.Query(sqlStatement)
+
+	rows, err := config.DB.Query(sql)
 	if err != nil {
 		return nil, err
 	}
@@ -157,4 +160,62 @@ func oneProduct(id int) (Product, error) {
 		return prod, err
 	}
 	return prod, nil
+}
+
+func ByParams(params map[string]interface{}) ([]Product, error) {
+	sql := "SELECT * FROM products WHERE gender=$1 AND is_kids=$2"
+	if params["ctgID"] != 0 {
+		sql = fmt.Sprintf(sql+" AND category_id=%d", params["ctgID"])
+	}
+
+	if params["brands"] != "" {
+		ids := arrangeList(params["brands"].(string))
+		sql = fmt.Sprintf(sql+" AND brand_id IN (%s)", ids)
+	}
+
+	if params["sizes"] != "" {
+		ids := arrangeList(params["sizes"].(string))
+		sql = fmt.Sprintf(sql+" AND size_id IN (%s)", ids)
+	}
+
+	if params["colors"] != "" {
+		ids := arrangeList(params["colors"].(string))
+		sql = fmt.Sprintf(sql+" AND color_id IN (%s)", ids)
+	}
+
+	rows, err := config.DB.Query(sql, params["gender"], params["isKids"])
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	prods := []Product{}
+	for rows.Next() {
+		prod := Product{}
+		err := rows.Scan(
+			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount, &prod.DscPercent,
+			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image, &prod.ImageName,
+		)
+		if err != nil {
+			return nil, err
+		}
+		prods = append(prods, prod)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return prods, nil
+}
+
+func arrangeList(l string) string {
+	ids := helper.ListToSlice(l)
+	var nl string
+	for i := 0; i < len(ids); i++ {
+		nl = nl + strconv.Itoa(ids[i])
+		if i != len(ids)-1 {
+			nl = nl + ","
+		}
+	}
+	return nl
 }
