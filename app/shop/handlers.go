@@ -2,19 +2,22 @@ package shop
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/color"
+	"onlineshop/admin/product"
 	"onlineshop/admin/size"
 	"onlineshop/app/user"
 	"onlineshop/helper"
+	"strconv"
 )
 
-// RltCategory = relative categories
-type RltCategory struct {
-	Parent category.Category
-	Childs []category.Category
+// Header struct
+type Header struct {
+	Auth user.User
+	Link string
 }
 
 func Index() http.Handler {
@@ -24,23 +27,21 @@ func Index() http.Handler {
 			return
 		}
 
-		auth := helper.AuthUserFromContext(r.Context())
-
 		if r.Method == http.MethodGet {
-			gender := 2
-			isKids := 2
+			stype := "women" // shop type
+			gender := 2      // female
+			isKids := 2      // not for kids
+
 			if r.FormValue("t") == "men" {
+				stype = "men"
 				gender = 1
 			} else if r.FormValue("t") == "kids" {
+				stype = "kids"
 				isKids = 1
+				if r.FormValue("g") == "boy" {
+					gender = 1
+				}
 			}
-
-			ctgs, err := category.ByGenderAndKids(gender, isKids)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
-			}
-			rcs := createRelation(ctgs)
 
 			checkedBrands := helper.ListToSlice(r.FormValue("b"))
 			brands, err := brand.Arrange(checkedBrands)
@@ -63,18 +64,47 @@ func Index() http.Handler {
 				return
 			}
 
+			ctgID, _ := strconv.Atoi(r.FormValue("ctg"))
+			ctgs, err := category.ByParams(gender, isKids, ctgID)
+			if err != nil {
+				log.Println(err)
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			// params := map[string]interface{}{
+			// 	"gender": gender,
+			// 	"isKids": isKids,
+			// 	"ctgID":  ctgID,
+			// 	"brands": r.FormValue("b"),
+			// 	"sizes":  r.FormValue("s"),
+			// 	"colors": r.FormValue("c"),
+			// }
+			// prods, err := product.ByParams(params)
+			// if err != nil {
+			// 	http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			// 	return
+			// }
+
 			data := struct {
-				Auth          user.User
-				RltCategories []RltCategory
-				Brands        []brand.Brand
-				Sizes         []size.Size
-				Colors        []color.Color
+				Header Header
+				Ctgs   []category.Parent
+				Brands []brand.Brand
+				Sizes  []size.Size
+				Colors []color.Color
+				Stype  string
+				Prods  []product.Product
 			}{
-				Auth:          auth,
-				RltCategories: rcs,
-				Brands:        brands,
-				Sizes:         sizes,
-				Colors:        colors,
+				Header: Header{
+					Auth: helper.AuthUserFromContext(r.Context()),
+					Link: stype,
+				},
+				Ctgs:   ctgs,
+				Brands: brands,
+				Sizes:  sizes,
+				Colors: colors,
+				Stype:  stype,
+				Prods:  prods,
 			}
 
 			helper.Render(w, "shop.gohtml", data)
@@ -86,26 +116,4 @@ func Index() http.Handler {
 			return
 		}
 	})
-}
-
-func createRelation(ctgs []category.Category) []RltCategory {
-	rcs := []RltCategory{}
-	for _, ctg := range ctgs {
-		if ctg.ParentID == 0 {
-			rc := RltCategory{}
-			rc.Parent = ctg
-			childs := []category.Category{}
-
-			for _, ctg2 := range ctgs {
-				if ctg2.ParentID == ctg.ID {
-					childs = append(childs, ctg2)
-				}
-			}
-
-			rc.Childs = childs
-			rcs = append(rcs, rc)
-		}
-	}
-
-	return rcs
 }

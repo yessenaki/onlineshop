@@ -18,6 +18,65 @@ type Category struct {
 	IsKids     int       `db:"is_kids"`
 	ParentName string    `db:"parent_name"`
 	Errors     map[string]string
+	Active     bool
+}
+
+// Parent struct
+type Parent struct {
+	ID     int
+	Name   string
+	Active bool
+	Childs []Category
+}
+
+func ByParams(gender int, isKids int, ctgID int) ([]Parent, error) {
+	sql := "SELECT * FROM categories WHERE gender IN (0, $1) AND is_kids IN (0, $2) ORDER BY id"
+
+	rows, err := config.DB.Query(sql, gender, isKids)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ctgs := []Category{}
+	for rows.Next() {
+		ctg := Category{}
+
+		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender, &ctg.IsKids)
+		if err != nil {
+			return nil, err
+		}
+
+		ctgs = append(ctgs, ctg)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	parents := []Parent{}
+	for _, ctg := range ctgs {
+		if ctg.ParentID == 0 {
+			parent := Parent{}
+			parent.ID = ctg.ID
+			parent.Name = ctg.Name
+
+			childs := []Category{}
+			for _, c := range ctgs {
+				if c.ParentID == ctg.ID {
+					if c.ID == ctgID {
+						parent.Active = true
+						c.Active = true
+					}
+					childs = append(childs, c)
+				}
+			}
+
+			parent.Childs = childs
+			parents = append(parents, parent)
+		}
+	}
+
+	return parents, nil
 }
 
 func (ctg *Category) validate() bool {
@@ -76,13 +135,16 @@ func AllCategories() ([]Category, error) {
 	for rows.Next() {
 		ctg := Category{}
 		var parentName sql.NullString
+
 		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender, &ctg.IsKids, &parentName)
 		if err != nil {
 			return nil, err
 		}
+
 		if parentName.Valid {
 			ctg.ParentName = parentName.String
 		}
+
 		ctgs = append(ctgs, ctg)
 	}
 	if err = rows.Err(); err != nil {
@@ -102,31 +164,4 @@ func oneCategory(id int) (Category, error) {
 		return ctg, err
 	}
 	return ctg, nil
-}
-
-func ByGenderAndKids(gender int, isKids int) ([]Category, error) {
-	sql := `SELECT id, name, parent_id, gender, is_kids
-		FROM categories
-		WHERE gender IN (0, $1) AND is_kids IN (0, $2)
-		ORDER BY id`
-
-	rows, err := config.DB.Query(sql, gender, isKids)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	ctgs := []Category{}
-	for rows.Next() {
-		ctg := Category{}
-		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.Gender, &ctg.IsKids)
-		if err != nil {
-			return nil, err
-		}
-		ctgs = append(ctgs, ctg)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-	return ctgs, nil
 }

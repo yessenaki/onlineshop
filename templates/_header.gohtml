@@ -70,10 +70,10 @@
                 <div class="col-xl-6 col-lg-7">
                     <nav class="header__menu">
                         <ul>
-                            <li class="active"><a href="/">Home</a></li>
-                            <li><a href="/shop/?t=women">Women’s</a></li>
-                            <li><a href="/shop/?t=men">Men’s</a></li>
-                            <li><a href="/shop/?t=kids">Kids</a></li>
+                            <li class="{{if eq .Link `home`}}active{{end}}"><a href="/">Home</a></li>
+                            <li class="{{if eq .Link `women`}}active{{end}}"><a href="/shop/?t=women">Women’s</a></li>
+                            <li class="{{if eq .Link `men`}}active{{end}}"><a href="/shop/?t=men">Men’s</a></li>
+                            <li class="{{if eq .Link `kids`}}active{{end}}"><a href="/shop/?t=kids">Kids</a></li>
                             <li><a href="#">Pages</a>
                                 <ul class="dropdown">
                                     <li><a href="./product-details.html">Product Details</a></li>
@@ -90,7 +90,7 @@
                 <div class="col-lg-3">
                     <div class="header__right">
                         <div class="header__right__auth">
-                            {{if .ID}}
+                            {{if .Auth.ID}}
                             <a href="/logout">Logout</a>
                             {{else}}
                             <a href="/login">Login</a>

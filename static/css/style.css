@@ -1363,7 +1363,7 @@ ol {
 	padding-left: 16px;
 }
 
-.categories__accordion .card-body li:before {
+/* .categories__accordion .card-body li:before {
 	position: absolute;
 	left: 4px;
 	top: 14px;
@@ -1371,12 +1371,16 @@ ol {
 	width: 4px;
 	background: #666666;
 	content: "";
-}
+} */
 
 .categories__accordion .card-body li a {
 	font-size: 14px;
 	color: #666666;
 	line-height: 30px;
+}
+
+.categories__accordion .card-body li a.active {
+	color: #007bff;
 }
 
 .categories__accordion .card-heading a:after,
@@ -1584,7 +1588,7 @@ ol {
 }
 
 .sidebar__brand .brand-more,
-.sidebar__sizes .sizes-more,
+.sidebar__sizes .size-more,
 .sidebar__color .color-more {
 	font-size: 14px;
 }
