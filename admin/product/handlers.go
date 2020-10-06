@@ -75,7 +75,7 @@ func create(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Sizes      []size.Size
 	}
 
-	ctgs, err := category.AllCategories()
+	ctgs, err := category.FindChilds()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -242,7 +242,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	ctgs, err := category.AllCategories()
+	ctgs, err := category.FindChilds()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

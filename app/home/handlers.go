@@ -8,9 +8,10 @@ import (
 	"onlineshop/helper"
 )
 
-type CtxData struct {
-	AuthUser user.User
-	Data     interface{}
+// Header struct
+type Header struct {
+	Auth user.User
+	Link string
 }
 
 func Index() http.Handler {
@@ -20,12 +21,17 @@ func Index() http.Handler {
 			return
 		}
 
-		ctxData := CtxData{
-			AuthUser: helper.AuthUserFromContext(r.Context()),
+		data := struct {
+			Header Header
+		}{
+			Header: Header{
+				Auth: helper.AuthUserFromContext(r.Context()),
+				Link: "home",
+			},
 		}
 
 		if r.Method == http.MethodGet {
-			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", ctxData)
+			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", data)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return

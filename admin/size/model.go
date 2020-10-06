@@ -2,6 +2,7 @@ package size
 
 import (
 	"database/sql"
+	"onlineshop/admin/category"
 	"onlineshop/config"
 	"strings"
 	"time"
@@ -31,8 +32,8 @@ func (s *Size) validate() bool {
 
 func (s *Size) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := "INSERT INTO sizes (size, type, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, s.Size, s.Type).Scan(&lastInsertedID)
+	stm := "INSERT INTO sizes (size, type, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	err := config.DB.QueryRow(stm, s.Size, s.Type).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -90,8 +91,25 @@ func oneSize(id int) (Size, error) {
 	return size, nil
 }
 
-func Arrange(ids []int) ([]Size, error) {
-	rows, err := config.DB.Query("SELECT * FROM sizes ORDER BY id")
+func Arrange(ids []int, ctgID int) ([]Size, error) {
+	ctg, err := category.FindOne(ctgID)
+	if err != nil {
+		return nil, err
+	}
+
+	stm := "SELECT * FROM sizes"
+	if ctg.ID > 0 {
+		if ctg.ParentID == 3 || ctg.ParentID == 4 {
+			return []Size{}, nil
+		} else if ctg.ParentID == 1 {
+			stm = stm + " WHERE type=0"
+		} else if ctg.ParentID == 2 {
+			stm = stm + " WHERE type=1"
+		}
+	}
+	stm = stm + " ORDER BY id"
+
+	rows, err := config.DB.Query(stm)
 	if err != nil {
 		return nil, err
 	}

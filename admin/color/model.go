@@ -30,8 +30,8 @@ func (c *Color) validate() bool {
 
 func (c *Color) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := "INSERT INTO colors (name, created_at, updated_at) VALUES ($1, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, c.Name).Scan(&lastInsertedID)
+	stm := "INSERT INTO colors (name, created_at, updated_at) VALUES ($1, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	err := config.DB.QueryRow(stm, c.Name).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -55,7 +55,7 @@ func (c *Color) destroy() error {
 }
 
 func AllColors() ([]Color, error) {
-	rows, err := config.DB.Query("SELECT * FROM colors")
+	rows, err := config.DB.Query("SELECT * FROM colors ORDER BY name")
 	if err != nil {
 		return nil, err
 	}

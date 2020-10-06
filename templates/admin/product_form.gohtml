@@ -65,7 +65,7 @@
                             <label for="category_id">Category</label>
                             <select name="category_id" class="form-control" id="category_id">
                                 {{range .Categories}}
-                                <option value="{{.ID}}" {{if eq $.Product.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
+                                <option data-parent="{{.ParentID}}" value="{{.ID}}" {{if eq $.Product.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
                                 {{end}}
                             </select>
                         </div>
@@ -88,8 +88,9 @@
                         <div class="form-group">
                             <label for="size_id">Size</label>
                             <select name="size_id" class="form-control" id="size_id">
+                                <option value="0">None</option>
                                 {{range .Sizes}}
-                                <option value="{{.ID}}" {{if eq $.Product.SizeID .ID}}selected{{end}}>{{.Size}}</option>
+                                <option data-type="{{.Type}}" value="{{.ID}}" {{if eq $.Product.SizeID .ID}}selected{{end}}>{{.Size}}</option>
                                 {{end}}
                             </select>
                         </div>

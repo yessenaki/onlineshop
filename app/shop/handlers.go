@@ -2,7 +2,6 @@ package shop
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
@@ -43,31 +42,9 @@ func Index() http.Handler {
 				}
 			}
 
-			checkedBrands := helper.ListToSlice(r.FormValue("b"))
-			brands, err := brand.Arrange(checkedBrands)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
-			}
-
-			checkedSizes := helper.ListToSlice(r.FormValue("s"))
-			sizes, err := size.Arrange(checkedSizes)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
-			}
-
-			checkedColors := helper.ListToSlice(r.FormValue("c"))
-			colors, err := color.Arrange(checkedColors)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
-			}
-
 			ctgID, _ := strconv.Atoi(r.FormValue("ctg"))
 			ctgs, err := category.ByParams(gender, isKids, ctgID)
 			if err != nil {
-				log.Println(err)
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
 			}
@@ -81,6 +58,27 @@ func Index() http.Handler {
 				"colors": r.FormValue("c"),
 			}
 			prods, err := product.ByParams(params)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			checkedBrands := helper.ListToSlice(r.FormValue("b"))
+			brands, err := brand.Arrange(checkedBrands)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			checkedSizes := helper.ListToSlice(r.FormValue("s"))
+			sizes, err := size.Arrange(checkedSizes, ctgID)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			checkedColors := helper.ListToSlice(r.FormValue("c"))
+			colors, err := color.Arrange(checkedColors)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return

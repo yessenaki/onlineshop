@@ -14,7 +14,7 @@
                             <div class="accordion" id="accordionExample">
                                 {{range .Ctgs}}
                                 <div class="card">
-                                    <div class="card-heading{{if .Active}} active{{end}}">
+                                    <div class="card-heading{{if .Active}} active{{end}}" data-parent="{{.ID}}">
                                         <a data-toggle="collapse" data-target="#collapse{{.ID}}">{{.Name}}</a>
                                     </div>
                                     <div id="collapse{{.ID}}" class="collapse{{if .Active}}show{{end}}" data-parent="#accordionExample">
@@ -63,6 +63,7 @@
                         </div>
                         <a href="#" class="brand-more" data-state="close">Show more</a>
                     </div>
+                    {{if .Sizes}}
                     <div class="sidebar__sizes">
                         <div class="section-title">
                             <h4>Sizes</h4>
@@ -78,6 +79,7 @@
                         </div>
                         <a href="#" class="size-more" data-state="close">Show more</a>
                     </div>
+                    {{end}}
                     <div class="sidebar__color">
                         <div class="section-title">
                             <h4>Colors</h4>

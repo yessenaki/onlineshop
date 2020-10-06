@@ -130,7 +130,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	ctg, err := oneCategory(id)
+	ctg, err := FindOne(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return

@@ -77,10 +77,10 @@ func (p *Product) validate(r *http.Request) bool {
 
 func (p *Product) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
+	stm := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
 		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at, image, image_name)
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13, $14) RETURNING id`
-	err := config.DB.QueryRow(sqlStatement,
+	err := config.DB.QueryRow(stm,
 		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName,
 	).Scan(&lastInsertedID)
 	if err != nil {
@@ -90,9 +90,9 @@ func (p *Product) store() (int, error) {
 }
 
 func (p *Product) update() error {
-	sqlStatement := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7, dsc_percent=$8,
+	stm := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7, dsc_percent=$8,
 		brand_id=$9, color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0), image=$13, image_name=$14 WHERE id=$15`
-	_, err := config.DB.Exec(sqlStatement,
+	_, err := config.DB.Exec(stm,
 		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName, p.ID,
 	)
 	if err != nil {
@@ -110,7 +110,7 @@ func (p *Product) destroy() error {
 }
 
 func allProducts() ([]Product, error) {
-	sql := `SELECT p.*, b.name as brand_name, c.name as color_name, ctg.name as ctg_name, s.size as size_name
+	stm := `SELECT p.*, b.name as brand_name, c.name as color_name, ctg.name as ctg_name, COALESCE(s.size, 'None', s.size) as size_name
 		FROM products as p
 		INNER JOIN brands as b
 		ON p.brand_id=b.id
@@ -118,10 +118,10 @@ func allProducts() ([]Product, error) {
 		ON p.color_id=c.id
 		INNER JOIN categories as ctg
 		ON p.category_id=ctg.id
-		INNER JOIN sizes as s
+		LEFT JOIN sizes as s
 		ON p.size_id=s.id`
 
-	rows, err := config.DB.Query(sql)
+	rows, err := config.DB.Query(stm)
 	if err != nil {
 		return nil, err
 	}
@@ -163,27 +163,29 @@ func oneProduct(id int) (Product, error) {
 }
 
 func ByParams(params map[string]interface{}) ([]Product, error) {
-	sql := "SELECT * FROM products WHERE gender=$1 AND is_kids=$2"
+	stm := "SELECT * FROM products WHERE gender=$1 AND is_kids=$2"
 	if params["ctgID"] != 0 {
-		sql = fmt.Sprintf(sql+" AND category_id=%d", params["ctgID"])
+		stm = fmt.Sprintf(stm+" AND category_id=%d", params["ctgID"])
 	}
 
 	if params["brands"] != "" {
 		ids := arrangeList(params["brands"].(string))
-		sql = fmt.Sprintf(sql+" AND brand_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND brand_id IN (%s)", ids)
 	}
 
 	if params["sizes"] != "" {
 		ids := arrangeList(params["sizes"].(string))
-		sql = fmt.Sprintf(sql+" AND size_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND size_id IN (%s)", ids)
 	}
 
 	if params["colors"] != "" {
 		ids := arrangeList(params["colors"].(string))
-		sql = fmt.Sprintf(sql+" AND color_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND color_id IN (%s)", ids)
 	}
 
-	rows, err := config.DB.Query(sql, params["gender"], params["isKids"])
+	stm = stm + " ORDER BY id DESC"
+
+	rows, err := config.DB.Query(stm, params["gender"], params["isKids"])
 	if err != nil {
 		return nil, err
 	}

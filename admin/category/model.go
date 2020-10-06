@@ -30,9 +30,8 @@ type Parent struct {
 }
 
 func ByParams(gender int, isKids int, ctgID int) ([]Parent, error) {
-	sql := "SELECT * FROM categories WHERE gender IN (2, $1) AND is_kids IN (2, $2) ORDER BY id"
-
-	rows, err := config.DB.Query(sql, gender, isKids)
+	stm := "SELECT * FROM categories WHERE gender IN (2, $1) AND is_kids IN (2, $2) ORDER BY id"
+	rows, err := config.DB.Query(stm, gender, isKids)
 	if err != nil {
 		return nil, err
 	}
@@ -92,9 +91,9 @@ func (ctg *Category) validate() bool {
 
 func (ctg *Category) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := `INSERT INTO categories (name, parent_id, created_at, updated_at, gender, is_kids)
+	stm := `INSERT INTO categories (name, parent_id, created_at, updated_at, gender, is_kids)
 		VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0), $3, $4) RETURNING id`
-	err := config.DB.QueryRow(sqlStatement, ctg.Name, ctg.ParentID, ctg.Gender, ctg.IsKids).Scan(&lastInsertedID)
+	err := config.DB.QueryRow(stm, ctg.Name, ctg.ParentID, ctg.Gender, ctg.IsKids).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -119,13 +118,13 @@ func (ctg *Category) destroy() error {
 }
 
 func AllCategories() ([]Category, error) {
-	sqlStatement := `SELECT c1.*, c2.name as parent_name
+	stm := `SELECT c1.*, c2.name as parent_name
 		FROM categories as c1
 		LEFT OUTER JOIN categories as c2
 		ON c1.parent_id=c2.id
 		ORDER BY c1.id`
 
-	rows, err := config.DB.Query(sqlStatement)
+	rows, err := config.DB.Query(stm)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +152,33 @@ func AllCategories() ([]Category, error) {
 	return ctgs, nil
 }
 
-func oneCategory(id int) (Category, error) {
+func FindChilds() ([]Category, error) {
+	stm := `SELECT * FROM categories WHERE parent_id<>0 ORDER BY name`
+
+	rows, err := config.DB.Query(stm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	ctgs := []Category{}
+	for rows.Next() {
+		ctg := Category{}
+
+		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender, &ctg.IsKids)
+		if err != nil {
+			return nil, err
+		}
+
+		ctgs = append(ctgs, ctg)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return ctgs, nil
+}
+
+func FindOne(id int) (Category, error) {
 	ctg := Category{}
 	row := config.DB.QueryRow("SELECT * FROM categories WHERE id=$1", id)
 	err := row.Scan(&ctg.ID, &ctg.Name, &ctg.ParentID, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.Gender, &ctg.IsKids)

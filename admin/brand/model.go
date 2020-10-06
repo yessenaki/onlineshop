@@ -30,8 +30,8 @@ func (b *Brand) validate() bool {
 
 func (b *Brand) store() (int, error) {
 	var lastInsertedID int
-	sqlStatement := "INSERT INTO brands (name, created_at, updated_at) VALUES ($1, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, b.Name).Scan(&lastInsertedID)
+	stm := "INSERT INTO brands (name, created_at, updated_at) VALUES ($1, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	err := config.DB.QueryRow(stm, b.Name).Scan(&lastInsertedID)
 	if err != nil {
 		return lastInsertedID, err
 	}
@@ -55,7 +55,7 @@ func (b *Brand) destroy() error {
 }
 
 func AllBrands() ([]Brand, error) {
-	rows, err := config.DB.Query("SELECT * FROM brands")
+	rows, err := config.DB.Query("SELECT * FROM brands ORDER BY name")
 	if err != nil {
 		return nil, err
 	}
