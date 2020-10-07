@@ -1,7 +1,9 @@
 package shop
 
 import (
+	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
@@ -17,6 +19,25 @@ import (
 type Header struct {
 	Auth user.User
 	Link string
+}
+
+// Pagination struct
+type Pagination struct {
+	Bprev   int // before the previous
+	Prev    int
+	Current int
+	Next    int
+	Anext   int // after the next
+}
+
+// Qstr struct, Qstr = Query string
+type Qstr struct {
+	Stype  string
+	Gender string
+	Ctg    string
+	Brands string
+	Sizes  string
+	Colors string
 }
 
 func Index() http.Handler {
@@ -49,20 +70,6 @@ func Index() http.Handler {
 				return
 			}
 
-			params := map[string]interface{}{
-				"gender": gender,
-				"isKids": isKids,
-				"ctgID":  ctgID,
-				"brands": r.FormValue("b"),
-				"sizes":  r.FormValue("s"),
-				"colors": r.FormValue("c"),
-			}
-			prods, err := product.ByParams(params)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
-			}
-
 			checkedBrands := helper.ListToSlice(r.FormValue("b"))
 			brands, err := brand.Arrange(checkedBrands)
 			if err != nil {
@@ -84,14 +91,38 @@ func Index() http.Handler {
 				return
 			}
 
+			page, _ := strconv.Atoi(r.FormValue("page"))
+			if page == 0 {
+				page = 1
+			}
+			params := map[string]interface{}{
+				"gender": gender,
+				"isKids": isKids,
+				"ctgID":  ctgID,
+				"brands": r.FormValue("b"),
+				"sizes":  r.FormValue("s"),
+				"colors": r.FormValue("c"),
+				"page":   page,
+			}
+			prods, quantity, err := product.FindByParams(params)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			pgn := createPgn(page, quantity)
+			qstr := arrangeQstr(r)
+			qstr.Stype = "?t=" + stype
+
 			data := struct {
 				Header Header
 				Ctgs   []category.Parent
 				Brands []brand.Brand
 				Sizes  []size.Size
 				Colors []color.Color
-				Stype  string
 				Prods  []product.Product
+				Pgn    Pagination
+				Qstr   Qstr
 			}{
 				Header: Header{
 					Auth: helper.AuthUserFromContext(r.Context()),
@@ -101,8 +132,9 @@ func Index() http.Handler {
 				Brands: brands,
 				Sizes:  sizes,
 				Colors: colors,
-				Stype:  stype,
 				Prods:  prods,
+				Pgn:    pgn,
+				Qstr:   qstr,
 			}
 
 			helper.Render(w, "shop.gohtml", data)
@@ -114,4 +146,48 @@ func Index() http.Handler {
 			return
 		}
 	})
+}
+
+func createPgn(page int, quantity int) Pagination {
+	pgn := Pagination{}
+	pages := math.Ceil(float64(quantity) / 9)
+	for i := 1; i <= int(pages); i++ {
+		switch i {
+		case page - 2:
+			pgn.Bprev = i
+		case page - 1:
+			pgn.Prev = i
+		case page:
+			pgn.Current = i
+		case page + 1:
+			pgn.Next = i
+		case page + 2:
+			pgn.Anext = i
+		}
+	}
+
+	return pgn
+}
+
+func arrangeQstr(r *http.Request) Qstr {
+	qstr := Qstr{}
+
+	if r.FormValue("g") != "" {
+		qstr.Gender = "&g=" + r.FormValue("g")
+	}
+	ctgID, _ := strconv.Atoi(r.FormValue("ctg"))
+	if ctgID > 0 {
+		qstr.Ctg = fmt.Sprintf("&ctg=%d", ctgID)
+	}
+	if r.FormValue("b") != "" {
+		qstr.Brands = "&b=" + r.FormValue("b")
+	}
+	if r.FormValue("s") != "" {
+		qstr.Sizes = "&s=" + r.FormValue("s")
+	}
+	if r.FormValue("c") != "" {
+		qstr.Colors = "&c=" + r.FormValue("c")
+	}
+
+	return qstr
 }

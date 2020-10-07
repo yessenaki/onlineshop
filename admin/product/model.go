@@ -162,8 +162,8 @@ func oneProduct(id int) (Product, error) {
 	return prod, nil
 }
 
-func ByParams(params map[string]interface{}) ([]Product, error) {
-	stm := "SELECT * FROM products WHERE gender=$1 AND is_kids=$2"
+func FindByParams(params map[string]interface{}) ([]Product, int, error) {
+	var stm string
 	if params["ctgID"] != 0 {
 		stm = fmt.Sprintf(stm+" AND category_id=%d", params["ctgID"])
 	}
@@ -183,11 +183,21 @@ func ByParams(params map[string]interface{}) ([]Product, error) {
 		stm = fmt.Sprintf(stm+" AND color_id IN (%s)", ids)
 	}
 
+	var quantity int
+	err := config.DB.QueryRow("SELECT count(*) FROM products WHERE gender=$1 AND is_kids=$2"+stm, params["gender"], params["isKids"]).Scan(&quantity)
+	if err != nil {
+		return nil, 0, err
+	}
+
 	stm = stm + " ORDER BY id DESC"
 
-	rows, err := config.DB.Query(stm, params["gender"], params["isKids"])
+	resultsPerPage := 9
+	offset := (params["page"].(int) - 1) * resultsPerPage
+	stm = fmt.Sprintf(stm+" LIMIT %d OFFSET %d", resultsPerPage, offset)
+
+	rows, err := config.DB.Query("SELECT * FROM products WHERE gender=$1 AND is_kids=$2"+stm, params["gender"], params["isKids"])
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer rows.Close()
 
@@ -199,15 +209,15 @@ func ByParams(params map[string]interface{}) ([]Product, error) {
 			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image, &prod.ImageName,
 		)
 		if err != nil {
-			return nil, err
+			return nil, 0, err
 		}
 		prods = append(prods, prod)
 	}
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return prods, nil
+	return prods, quantity, nil
 }
 
 func arrangeList(l string) string {

@@ -1610,6 +1610,12 @@ ol {
 	margin-right: 6px;
 }
 
+.pagination__option a.active {
+	background: #0d0d0d;
+	border-color: #0d0d0d;
+	color: #ffffff;
+}
+
 .pagination__option a:last-child {
 	margin-right: 0;
 }
