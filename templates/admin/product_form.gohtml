@@ -114,6 +114,14 @@
                             </label>
                         </div>
                         <div class="form-group">
+                            <label for="description">Description</label>
+                            <textarea class="form-control{{if .Product.Errors.Description}} is-invalid{{end}}" 
+                                name="description" id="description" rows="3">{{with .Product.Description}}{{.}}{{end}}</textarea>
+                            {{with .Product.Errors.Description}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
+                        </div>
+                        <div class="form-group">
                             <label for="image">Upload image</label>
                             <input type="file" class="form-control-file{{if .Product.Errors.Image}} is-invalid{{end}}" name="image" id="image">
                             {{with .Product.Errors.Image}}

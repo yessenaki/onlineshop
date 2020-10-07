@@ -116,7 +116,7 @@
                                 </ul>
                             </div>
                             <div class="product__item__text">
-                                <h6><a href="#">{{.Title}}</a></h6>
+                                <h6><a href="/product/?id={{.ID}}">{{.Title}}</a></h6>
                                 <div class="product__price">$ {{fmtprice .Price}} {{if eq .IsDiscount 1}}<span>$ {{fmtprice .OldPrice}}</span>{{end}}</div>
                             </div>
                         </div>

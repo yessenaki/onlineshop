@@ -2,7 +2,6 @@ package shop
 
 import (
 	"fmt"
-	"io"
 	"math"
 	"net/http"
 	"onlineshop/admin/brand"
@@ -139,12 +138,44 @@ func Index() http.Handler {
 
 			helper.Render(w, "shop.gohtml", data)
 			return
-		} else if r.Method == http.MethodPost {
-			io.WriteString(w, "POST /")
-		} else {
-			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		}
+
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
+	})
+}
+
+func Details() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/product/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
 			return
 		}
+
+		if r.Method == http.MethodGet {
+			id, _ := strconv.Atoi(r.FormValue("id"))
+			prod, err := product.FindOne(id)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			data := struct {
+				Header Header
+				Prod   product.Product
+			}{
+				Header: Header{
+					Auth: helper.AuthUserFromContext(r.Context()),
+				},
+				Prod: prod,
+			}
+
+			helper.Render(w, "product_details.gohtml", data)
+			return
+		}
+
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
 	})
 }
 

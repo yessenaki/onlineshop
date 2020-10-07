@@ -22,6 +22,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.Handle("/", home.Index())
 	mux.Handle("/shop/", shop.Index())
+	mux.Handle("/product/", shop.Details())
 	mux.Handle("/cart/", cart.Index())
 	mux.Handle("/checkout/", cart.Checkout())
 	mux.Handle("/blog/", blog.Index())
