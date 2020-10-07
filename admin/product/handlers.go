@@ -50,7 +50,7 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 		Products []Product
 	}
 
-	prods, err := allProducts()
+	prods, err := FindAll()
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -139,18 +139,19 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	prod := &Product{
-		Title:      r.FormValue("title"),
-		Price:      price,
-		OldPrice:   oldPrice,
-		Gender:     gender,
-		IsKids:     isKids,
-		IsNew:      isNew,
-		IsDiscount: isDiscount,
-		DscPercent: dscPercent,
-		BrandID:    brandID,
-		ColorID:    colorID,
-		CategoryID: ctgID,
-		SizeID:     sizeID,
+		Title:       r.FormValue("title"),
+		Price:       price,
+		OldPrice:    oldPrice,
+		Gender:      gender,
+		IsKids:      isKids,
+		IsNew:       isNew,
+		IsDiscount:  isDiscount,
+		DscPercent:  dscPercent,
+		BrandID:     brandID,
+		ColorID:     colorID,
+		CategoryID:  ctgID,
+		SizeID:      sizeID,
+		Description: r.FormValue("description"),
 	}
 
 	if prod.validate(r) == false {
@@ -235,7 +236,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	prod, err := oneProduct(id)
+	prod, err := FindOne(id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -313,21 +314,22 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	prod := &Product{
-		ID:         id,
-		Title:      r.FormValue("title"),
-		Price:      price,
-		OldPrice:   oldPrice,
-		Gender:     gender,
-		IsKids:     isKids,
-		IsNew:      isNew,
-		IsDiscount: isDiscount,
-		DscPercent: dscPercent,
-		BrandID:    brandID,
-		ColorID:    colorID,
-		CategoryID: ctgID,
-		SizeID:     sizeID,
-		Image:      r.FormValue("old_image"),
-		ImageName:  r.FormValue("old_image_name"),
+		ID:          id,
+		Title:       r.FormValue("title"),
+		Price:       price,
+		OldPrice:    oldPrice,
+		Gender:      gender,
+		IsKids:      isKids,
+		IsNew:       isNew,
+		IsDiscount:  isDiscount,
+		DscPercent:  dscPercent,
+		BrandID:     brandID,
+		ColorID:     colorID,
+		CategoryID:  ctgID,
+		SizeID:      sizeID,
+		Image:       r.FormValue("old_image"),
+		ImageName:   r.FormValue("old_image_name"),
+		Description: r.FormValue("description"),
 	}
 
 	if prod.validate(r) == false {
