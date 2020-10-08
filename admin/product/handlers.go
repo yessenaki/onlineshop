@@ -1,15 +1,18 @@
 package product
 
 import (
-	"crypto/sha1"
+	"crypto/sha256"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"math"
+	"mime/multipart"
 	"net/http"
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/color"
+	"onlineshop/admin/filestg"
 	"onlineshop/admin/size"
 	"onlineshop/app/user"
 	"onlineshop/helper"
@@ -200,16 +203,13 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	fileInfo, err := uploadImage(r)
+	id, err := prod.store()
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
-	prod.Image = fileInfo["image"]
-	prod.ImageName = fileInfo["image_name"]
 
-	_, err = prod.store()
+	err = uploadImages(id, r)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -327,8 +327,6 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		ColorID:     colorID,
 		CategoryID:  ctgID,
 		SizeID:      sizeID,
-		Image:       r.FormValue("old_image"),
-		ImageName:   r.FormValue("old_image_name"),
 		Description: r.FormValue("description"),
 	}
 
@@ -378,16 +376,6 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	imageInfo, err := uploadImage(r)
-	if err != nil {
-		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-		return
-	}
-	if imageInfo != nil {
-		prod.Image = imageInfo["image"]
-		prod.ImageName = imageInfo["image_name"]
-	}
-
 	err = prod.update()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -423,39 +411,118 @@ func priceToInt(price string) int {
 	return int(rprice)
 }
 
-func uploadImage(r *http.Request) (map[string]string, error) {
-	file, fileHeader, err := r.FormFile("image")
-	if err != nil && err != http.ErrMissingFile {
-		return nil, err
-	}
-	if err == http.ErrMissingFile && r.Method == http.MethodPut {
-		return nil, nil
-	}
-	defer file.Close()
+func uploadImages(id int, r *http.Request) error {
+	// define some variables used throughout the function
+	// n: for keeping track of bytes read and written
+	// err: for storing errors that need checking
+	var n int
+	var err error
 
-	ext := strings.Split(fileHeader.Filename, ".")[1]
-	hash := sha1.New()
-	io.Copy(hash, file)
-	filename := fmt.Sprintf("%x", hash.Sum(nil)) + "." + ext
+	// define pointers for the multipart reader and its parts
+	var mr *multipart.Reader
+	var part *multipart.Part
 
-	wd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-	path := filepath.Join(wd, "static", "uploads", filename)
-
-	newFile, err := os.Create(path)
-	if err != nil {
-		return nil, err
-	}
-	defer newFile.Close()
-
-	file.Seek(0, 0)
-	io.Copy(newFile, file)
-	fileInfo := map[string]string{
-		"image":      "/assets/uploads/" + filename,
-		"image_name": fileHeader.Filename,
+	if mr, err = r.MultipartReader(); err != nil {
+		log.Printf("Hit error while opening multipart reader: %s", err.Error())
+		return err
 	}
 
-	return fileInfo, nil
+	// buffer to be used for reading bytes from files
+	chunk := make([]byte, 4096)
+
+	// continue looping through all parts, *multipart.Reader.NextPart() will
+	// return an End of File when all parts have been read.
+	for {
+		// variables used in this loop only
+		// tempfile: filehandler for the temporary file
+		// filesize: how many bytes where written to the tempfile
+		// uploaded: boolean to flip when the end of a part is reached
+		var tempfile *os.File
+		var filesize int
+		var uploaded bool
+
+		if part, err = mr.NextPart(); err != nil {
+			if err != io.EOF {
+				log.Printf("Hit error while fetching next part: %s", err.Error())
+				return err
+			}
+
+			log.Printf("Hit last part of multipart upload")
+			return nil
+		}
+		// at this point the filename and the mimetype is known
+		// filename: part.FileName()
+		// mimetype: part.Header
+		ext := strings.Split(part.FileName(), ".")[1]
+
+		tempfile, err = ioutil.TempFile(os.TempDir(), "upload-*.tmp")
+		if err != nil {
+			return err
+		}
+		defer tempfile.Close()
+
+		// defer the removal of the tempfile as well, something can be done
+		// with it before the function is over (as long as you have the filehandle)
+		defer os.Remove(tempfile.Name())
+
+		// continue reading until the whole file is upload or an error is reached
+		for !uploaded {
+			if n, err = part.Read(chunk); err != nil {
+				if err != io.EOF {
+					log.Printf("Hit error while reading chunk: %s", err.Error())
+					return err
+				}
+				uploaded = true
+			}
+
+			if n, err = tempfile.Write(chunk[:n]); err != nil {
+				log.Printf("Hit error while writing chunk: %s", err.Error())
+				return err
+			}
+			filesize += n
+		}
+
+		// once uploaded something can be done with the file, the last defer
+		// statement will remove the file after the function returns so any
+		// errors during upload won't hit this, but at least the tempfile is
+		// cleaned up
+		if n, err := tempfile.Seek(0, 0); err != nil || n != 0 {
+			log.Printf("unable to seek to beginning of file '%s'", tempfile.Name())
+		}
+
+		h := sha256.New()
+		if _, err := io.Copy(h, tempfile); err != nil {
+			log.Printf("unable to hash '%s': %s", tempfile.Name(), err.Error())
+		}
+		filename := fmt.Sprintf("%x", h.Sum(nil)) + "." + ext
+
+		// get working directory
+		wd, err := os.Getwd()
+		if err != nil {
+			log.Println(err)
+		}
+		path := filepath.Join(wd, "static", "uploads", filename)
+
+		newFile, err := os.Create(path)
+		if err != nil {
+			log.Println(err)
+		}
+		defer newFile.Close()
+
+		if n, err := tempfile.Seek(0, 0); err != nil || n != 0 {
+			log.Printf("unable to seek to beginning of file '%s'", tempfile.Name())
+		}
+
+		if _, err := io.Copy(newFile, tempfile); err != nil {
+			log.Println(err)
+		}
+
+		fs := filestg.Filestg{
+			Name:      part.FileName(),
+			Path:      "/static/uploads/" + filename,
+			ProductID: id,
+		}
+		_, err = fs.Store()
+		return err
+	}
 }

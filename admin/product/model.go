@@ -28,8 +28,6 @@ type Product struct {
 	SizeID      int       `db:"size_id"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_id"`
-	Image       string    `db:"image"`
-	ImageName   string    `db:"image_name"`
 	Description string    `db:"description"`
 	BrandName   string    `db:"brand_name"`
 	ColorName   string    `db:"color_name"`
@@ -65,29 +63,30 @@ func (p *Product) validate(r *http.Request) bool {
 		p.Errors["Description"] = "The field Description cannot be empty"
 	}
 
-	_, fileHeader, err := r.FormFile("image")
-	exts := []string{"png", "jpg", "jpeg"}
-	if err == http.ErrMissingFile {
-		if r.Method == http.MethodPost {
-			p.Errors["Image"] = "Please choose an image file"
-		}
-	} else {
-		ext := strings.Split(fileHeader.Filename, ".")[1]
-		if fileHeader.Size > 2<<20 || helper.Contains(exts, ext) == false {
-			p.Errors["Image"] = "Your image must be in png, jpg, jpeg format and must not exceed 2MB"
-		}
-	}
+	// file, fileHeader, err := r.FormFile("image")
+	// defer file.Close()
+	// exts := []string{"png", "jpg", "jpeg"}
+	// if err == http.ErrMissingFile {
+	// 	if r.Method == http.MethodPost {
+	// 		p.Errors["Image"] = "Please choose an image file"
+	// 	}
+	// } else {
+	// 	ext := strings.Split(fileHeader.Filename, ".")[1]
+	// 	if fileHeader.Size > 2<<20 || helper.Contains(exts, ext) == false {
+	// 		p.Errors["Image"] = "Your image must be in png, jpg, jpeg format and must not exceed 2MB"
+	// 	}
+	// }
 
 	return len(p.Errors) == 0
 }
 
 func (p *Product) store() (int, error) {
 	var id int
-	stm := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount, dsc_percent,
-		brand_id,color_id,category_id, size_id, created_at, updated_at, image, image_name, description)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13, $14, $15) RETURNING id`
+	stm := `INSERT INTO products (title, price, old_price, gender, is_kids, is_new, is_discount,
+		dsc_percent, brand_id, color_id, category_id, size_id, created_at, updated_at, description)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW()::timestamp(0), NOW()::timestamp(0), $13) RETURNING id`
 	err := config.DB.QueryRow(stm,
-		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName, p.Description,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Description,
 	).Scan(&id)
 	if err != nil {
 		return id, err
@@ -96,10 +95,10 @@ func (p *Product) store() (int, error) {
 }
 
 func (p *Product) update() error {
-	stm := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7, dsc_percent=$8, brand_id=$9,
-		color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0), image=$13, image_name=$14, description=$15 WHERE id=$16`
+	stm := `UPDATE products SET title=$1, price=$2, old_price=$3, gender=$4, is_kids=$5, is_new=$6, is_discount=$7, dsc_percent=$8,
+		brand_id=$9, color_id=$10, category_id=$11, size_id=$12, updated_at=NOW()::timestamp(0), description=$13 WHERE id=$14`
 	_, err := config.DB.Exec(stm,
-		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Image, p.ImageName, p.Description, p.ID,
+		p.Title, p.Price, p.OldPrice, p.Gender, p.IsKids, p.IsNew, p.IsDiscount, p.DscPercent, p.BrandID, p.ColorID, p.CategoryID, p.SizeID, p.Description, p.ID,
 	)
 	if err != nil {
 		return err
@@ -139,7 +138,7 @@ func FindAll() ([]Product, error) {
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
 			&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
-			&prod.Image, &prod.ImageName, &prod.Description, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
+			&prod.Description, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
 		)
 		if err != nil {
 			return nil, err
@@ -169,7 +168,7 @@ func FindOne(id int) (Product, error) {
 	err := config.DB.QueryRow(stm, id).Scan(
 		&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount,
 		&prod.DscPercent, &prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt,
-		&prod.Image, &prod.ImageName, &prod.Description, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
+		&prod.Description, &prod.BrandName, &prod.ColorName, &prod.CtgName, &prod.SizeName,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -224,7 +223,7 @@ func FindByParams(params map[string]interface{}) ([]Product, int, error) {
 		prod := Product{}
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount, &prod.DscPercent,
-			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Image, &prod.ImageName, &prod.Description,
+			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Description,
 		)
 		if err != nil {
 			return nil, 0, err

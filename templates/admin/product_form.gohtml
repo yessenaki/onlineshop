@@ -122,19 +122,16 @@
                             {{end}}
                         </div>
                         <div class="form-group">
-                            <label for="image">Upload image</label>
-                            <input type="file" class="form-control-file{{if .Product.Errors.Image}} is-invalid{{end}}" name="image" id="image">
-                            {{with .Product.Errors.Image}}
-                            <div class="invalid-feedback">{{.}}</div>
-                            {{end}}
-                            {{if .Product.Image}}
+                            <label for="images">Upload images</label>
+                            <input type="file" class="form-control-file" name="images" id="images" multiple />
+                            {{/* {{if .Product.Image}}
                             <input type="hidden" name="old_image" value="{{.Product.Image}}">
                             <input type="hidden" name="old_image_name" value="{{.Product.ImageName}}">
                             <div class="form-image">
                                 <p>{{.Product.ImageName}}</p>
                                 <img src="{{.Product.Image}}" alt="{{.Product.ImageName}}">
                             </div>
-                            {{end}}
+                            {{end}} */}}
                         </div>
                         {{/* <div class="form-group">
                             <label for="exampleFormControlInput1">Email address</label>
@@ -144,10 +141,6 @@
                         <div class="form-group">
                             <label for="exampleFormControlPassword">Password</label>
                             <input type="password" class="form-control" id="exampleFormControlPassword" placeholder="Password">
-                        </div>
-                        <div class="form-group">
-                            <label for="exampleFormControlTextarea1">Example textarea</label>
-                            <textarea class="form-control" id="exampleFormControlTextarea1" rows="3"></textarea>
                         </div>
                         <div class="form-group">
                             <label for="multiple_select">States</label>
