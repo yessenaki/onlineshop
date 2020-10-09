@@ -284,10 +284,27 @@
   display: block;
 }
 
-.form-image {
+.form-image-wrap {
   margin-top: 15px;
 }
 
+.form-image {
+  position: relative;
+  margin-top: 5px;
+}
+
 .form-image img {
-  height: 160px;
+  width: 100%;
+}
+
+.form-image i {
+  position: absolute;
+  right: 3%;
+  top: 1%;
+  font-size: 21px;
+}
+
+.form-image i:hover {
+  color: #ff605c;
+  cursor: pointer;
 }

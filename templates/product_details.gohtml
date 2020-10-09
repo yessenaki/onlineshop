@@ -7,25 +7,17 @@
             <div class="col-lg-6">
                 <div class="product__details__pic">
                     <div class="product__details__pic__left product__thumb nice-scroll">
-                        <a class="pt active" href="#product-1">
-                            <img src="{{.Prod.Image}}" alt="">
+                        {{range $k, $v := .Images}}
+                        <a class="pt{{if eq $k 0}} active{{end}}" href="#product-{{$k}}">
+                            <img src="{{$v.Path}}" alt="{{$v.Name}}">
                         </a>
-                        <a class="pt" href="#product-2">
-                            <img src="/assets/img/product/details/thumb-2.jpg" alt="">
-                        </a>
-                        <a class="pt" href="#product-3">
-                            <img src="/assets/img/product/details/thumb-3.jpg" alt="">
-                        </a>
-                        <a class="pt" href="#product-4">
-                            <img src="/assets/img/product/details/thumb-4.jpg" alt="">
-                        </a>
+                        {{end}}
                     </div>
                     <div class="product__details__slider__content">
                         <div class="product__details__pic__slider owl-carousel">
-                            <img data-hash="product-1" class="product__big__img" src="{{.Prod.Image}}" alt="">
-                            <img data-hash="product-2" class="product__big__img" src="/assets/img/product/details/product-3.jpg" alt="">
-                            <img data-hash="product-3" class="product__big__img" src="/assets/img/product/details/product-2.jpg" alt="">
-                            <img data-hash="product-4" class="product__big__img" src="/assets/img/product/details/product-4.jpg" alt="">
+                            {{range $k, $v := .Images}}
+                            <img data-hash="product-{{$k}}" class="product__big__img" src="{{$v.Path}}" alt="{{$v.Name}}">
+                            {{end}}
                         </div>
                     </div>
                 </div>

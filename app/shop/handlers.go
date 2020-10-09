@@ -7,6 +7,7 @@ import (
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/color"
+	"onlineshop/admin/file"
 	"onlineshop/admin/product"
 	"onlineshop/admin/size"
 	"onlineshop/app/user"
@@ -160,14 +161,22 @@ func Details() http.Handler {
 				return
 			}
 
+			images, err := file.FindByProductID(id)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
 			data := struct {
 				Header Header
 				Prod   product.Product
+				Images []file.File
 			}{
 				Header: Header{
 					Auth: helper.AuthUserFromContext(r.Context()),
 				},
-				Prod: prod,
+				Prod:   prod,
+				Images: images,
 			}
 
 			helper.Render(w, "product_details.gohtml", data)

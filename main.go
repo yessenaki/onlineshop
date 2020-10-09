@@ -31,6 +31,7 @@ func main() {
 	mux.Handle("/logout/", user.Logout())
 	mux.Handle("/register/", user.Register())
 	mux.Handle("/admin/products/", override(product.Handle()))
+	mux.Handle("/admin/products/delete-image/", product.DeleteImage())
 	mux.Handle("/admin/categories/", override(category.Handle()))
 	mux.Handle("/admin/brands/", override(brand.Handle()))
 	mux.Handle("/admin/sizes/", override(size.Handle()))

@@ -3,7 +3,8 @@ package product
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
+	"mime/multipart"
+	"onlineshop/admin/file"
 	"onlineshop/config"
 	"onlineshop/helper"
 	"strconv"
@@ -33,10 +34,12 @@ type Product struct {
 	ColorName   string    `db:"color_name"`
 	CtgName     string    `db:"ctg_name"`
 	SizeName    string    `db:"size_name"`
+	ImagePath   string
 	Errors      map[string]string
+	FileHeaders []*multipart.FileHeader
 }
 
-func (p *Product) validate(r *http.Request) bool {
+func (p *Product) validate() bool {
 	p.Errors = make(map[string]string)
 	title := strings.TrimSpace(p.Title)
 	descr := strings.TrimSpace(p.Description)
@@ -63,19 +66,15 @@ func (p *Product) validate(r *http.Request) bool {
 		p.Errors["Description"] = "The field Description cannot be empty"
 	}
 
-	// file, fileHeader, err := r.FormFile("image")
-	// defer file.Close()
-	// exts := []string{"png", "jpg", "jpeg"}
-	// if err == http.ErrMissingFile {
-	// 	if r.Method == http.MethodPost {
-	// 		p.Errors["Image"] = "Please choose an image file"
-	// 	}
-	// } else {
-	// 	ext := strings.Split(fileHeader.Filename, ".")[1]
-	// 	if fileHeader.Size > 2<<20 || helper.Contains(exts, ext) == false {
-	// 		p.Errors["Image"] = "Your image must be in png, jpg, jpeg format and must not exceed 2MB"
-	// 	}
-	// }
+	fhs := p.FileHeaders
+	exts := []string{"png", "jpg", "jpeg"}
+	for _, fh := range fhs {
+		ext := strings.Split(fh.Filename, ".")[1]
+		if fh.Size > 2<<20 || helper.Contains(exts, ext) == false {
+			p.Errors["Images"] = "Your image must be in png, jpg, jpeg format and must not exceed 2MB"
+			break
+		}
+	}
 
 	return len(p.Errors) == 0
 }
@@ -228,6 +227,17 @@ func FindByParams(params map[string]interface{}) ([]Product, int, error) {
 		if err != nil {
 			return nil, 0, err
 		}
+
+		// get an image
+		f := file.File{}
+		err = config.DB.QueryRow("SELECT id, path FROM files WHERE product_id=$1 LIMIT 1", prod.ID).Scan(&f.ID, &f.Path)
+		if err != nil && err != sql.ErrNoRows {
+			return nil, 0, err
+		}
+		if f.ID > 0 {
+			prod.ImagePath = f.Path
+		}
+
 		prods = append(prods, prod)
 	}
 	if err = rows.Err(); err != nil {

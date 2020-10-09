@@ -2,9 +2,9 @@ package product
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"math"
 	"mime/multipart"
@@ -12,7 +12,7 @@ import (
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/color"
-	"onlineshop/admin/filestg"
+	"onlineshop/admin/file"
 	"onlineshop/admin/size"
 	"onlineshop/app/user"
 	"onlineshop/helper"
@@ -155,9 +155,10 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		CategoryID:  ctgID,
 		SizeID:      sizeID,
 		Description: r.FormValue("description"),
+		FileHeaders: r.MultipartForm.File["images"],
 	}
 
-	if prod.validate(r) == false {
+	if prod.validate() == false {
 		type Data struct {
 			Auth       user.User
 			Product    *Product
@@ -209,9 +210,8 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
-	err = uploadImages(id, r)
+	err = uploadFiles(id, r.MultipartForm.File["images"])
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -224,6 +224,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	type Data struct {
 		Auth       user.User
 		Product    Product
+		Images     []file.File
 		Categories []category.Category
 		Brands     []brand.Brand
 		Colors     []color.Color
@@ -237,6 +238,12 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	prod, err := FindOne(id)
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	images, err := file.FindByProductID(id)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -270,6 +277,7 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	data := Data{
 		Auth:       auth,
 		Product:    prod,
+		Images:     images,
 		Categories: ctgs,
 		Brands:     brands,
 		Colors:     colors,
@@ -328,9 +336,10 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		CategoryID:  ctgID,
 		SizeID:      sizeID,
 		Description: r.FormValue("description"),
+		FileHeaders: r.MultipartForm.File["images"],
 	}
 
-	if prod.validate(r) == false {
+	if prod.validate() == false {
 		type Data struct {
 			Auth       user.User
 			Product    *Product
@@ -382,6 +391,12 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 		return
 	}
 
+	err = uploadFiles(id, r.MultipartForm.File["images"])
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
 	http.Redirect(w, r, "/admin/products/", http.StatusSeeOther)
 	return
 }
@@ -404,6 +419,28 @@ func destroy(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func DeleteImage() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/admin/products/delete-image/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
+			return
+		}
+
+		if r.Method == http.MethodPost {
+			id, _ := strconv.Atoi(r.FormValue("id"))
+			err := file.Destroy(id)
+			var success bool
+			if err == nil {
+				success = true
+			}
+
+			j, _ := json.Marshal(success)
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		}
+	})
+}
+
 func priceToInt(price string) int {
 	fprice, _ := strconv.ParseFloat(price, 64)
 	rprice := math.Round(fprice * 100)
@@ -411,118 +448,51 @@ func priceToInt(price string) int {
 	return int(rprice)
 }
 
-func uploadImages(id int, r *http.Request) error {
-	// define some variables used throughout the function
-	// n: for keeping track of bytes read and written
-	// err: for storing errors that need checking
-	var n int
-	var err error
-
-	// define pointers for the multipart reader and its parts
-	var mr *multipart.Reader
-	var part *multipart.Part
-
-	if mr, err = r.MultipartReader(); err != nil {
-		log.Printf("Hit error while opening multipart reader: %s", err.Error())
-		return err
-	}
-
-	// buffer to be used for reading bytes from files
-	chunk := make([]byte, 4096)
-
-	// continue looping through all parts, *multipart.Reader.NextPart() will
-	// return an End of File when all parts have been read.
-	for {
-		// variables used in this loop only
-		// tempfile: filehandler for the temporary file
-		// filesize: how many bytes where written to the tempfile
-		// uploaded: boolean to flip when the end of a part is reached
-		var tempfile *os.File
-		var filesize int
-		var uploaded bool
-
-		if part, err = mr.NextPart(); err != nil {
-			if err != io.EOF {
-				log.Printf("Hit error while fetching next part: %s", err.Error())
-				return err
-			}
-
-			log.Printf("Hit last part of multipart upload")
-			return nil
-		}
-		// at this point the filename and the mimetype is known
-		// filename: part.FileName()
-		// mimetype: part.Header
-		ext := strings.Split(part.FileName(), ".")[1]
-
-		tempfile, err = ioutil.TempFile(os.TempDir(), "upload-*.tmp")
+func uploadFiles(id int, fhs []*multipart.FileHeader) error {
+	for _, fh := range fhs {
+		// fmt.Println(fh.Filename, fh.Header, fh.Size)
+		f, err := fh.Open()
 		if err != nil {
 			return err
 		}
-		defer tempfile.Close()
+		defer f.Close()
 
-		// defer the removal of the tempfile as well, something can be done
-		// with it before the function is over (as long as you have the filehandle)
-		defer os.Remove(tempfile.Name())
-
-		// continue reading until the whole file is upload or an error is reached
-		for !uploaded {
-			if n, err = part.Read(chunk); err != nil {
-				if err != io.EOF {
-					log.Printf("Hit error while reading chunk: %s", err.Error())
-					return err
-				}
-				uploaded = true
-			}
-
-			if n, err = tempfile.Write(chunk[:n]); err != nil {
-				log.Printf("Hit error while writing chunk: %s", err.Error())
-				return err
-			}
-			filesize += n
-		}
-
-		// once uploaded something can be done with the file, the last defer
-		// statement will remove the file after the function returns so any
-		// errors during upload won't hit this, but at least the tempfile is
-		// cleaned up
-		if n, err := tempfile.Seek(0, 0); err != nil || n != 0 {
-			log.Printf("unable to seek to beginning of file '%s'", tempfile.Name())
-		}
-
+		ext := strings.Split(fh.Filename, ".")[1]
 		h := sha256.New()
-		if _, err := io.Copy(h, tempfile); err != nil {
-			log.Printf("unable to hash '%s': %s", tempfile.Name(), err.Error())
+		if _, err := io.Copy(h, f); err != nil {
+			log.Printf("Unable to hash '%s': %s", fh.Filename, err.Error())
 		}
 		filename := fmt.Sprintf("%x", h.Sum(nil)) + "." + ext
 
-		// get working directory
-		wd, err := os.Getwd()
+		wd, err := os.Getwd() // working directory
 		if err != nil {
-			log.Println(err)
+			return err
 		}
 		path := filepath.Join(wd, "static", "uploads", filename)
 
-		newFile, err := os.Create(path)
+		nf, err := os.Create(path) // new file
 		if err != nil {
-			log.Println(err)
+			return err
 		}
-		defer newFile.Close()
+		defer nf.Close()
 
-		if n, err := tempfile.Seek(0, 0); err != nil || n != 0 {
-			log.Printf("unable to seek to beginning of file '%s'", tempfile.Name())
+		if n, err := f.Seek(0, 0); err != nil || n != 0 {
+			log.Printf("Unable to seek to beginning of file '%s'", filename)
+		}
+		if _, err := io.Copy(nf, f); err != nil {
+			log.Printf("Unable to copy '%s': %s", filename, err.Error())
 		}
 
-		if _, err := io.Copy(newFile, tempfile); err != nil {
-			log.Println(err)
-		}
-
-		fs := filestg.Filestg{
-			Name:      part.FileName(),
-			Path:      "/static/uploads/" + filename,
+		m := file.File{
+			Name:      fh.Filename,
+			Path:      "/assets/uploads/" + filename,
 			ProductID: id,
 		}
-		_, err = fs.Store()
-		return err
+		_, err = m.Store()
+		if err != nil {
+			return err
+		}
 	}
+
+	return nil
 }

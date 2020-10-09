@@ -25,4 +25,27 @@ $(document).ready(function() {
             });
         }
     }
+
+    $(".form-image i").click(function(e) {
+        if (confirm('Are you sure you want to do this?') == false) {
+            e.preventDefault();
+        }
+
+        var self = $(this);
+        $.ajax({
+            url:"/admin/products/delete-image/",
+            type: "POST",
+            data: {"id": self.data("id")},
+            dataType: "json",
+            success: function(data) {
+                console.log(data)
+                if (data) {
+                    self.closest(".col-4").remove();
+                }
+            },
+            error: function(e){
+                console.log(e);
+            }
+        });
+    });
 });
