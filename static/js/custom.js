@@ -115,4 +115,27 @@
 
         $(location).attr("href", url);
     }
+
+    $(".btn-cart").click(function(e) {
+        e.preventDefault();
+        var data = {
+            user_id: 1,
+            product_id: parseInt($(this).data("id")),
+            quantity: 1
+        };
+        $.ajax({
+            url: "/cart/",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            dataType: "json",
+            success: function(msg) {
+                alert(msg);
+            },
+            error: function(err){
+                // console.log(err);
+                alert("Sorry, something went wrong");
+            }
+        });
+    });
 })(jQuery);

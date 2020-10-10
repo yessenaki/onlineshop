@@ -111,8 +111,7 @@
                                 {{if eq .IsDiscount 1}}<div class="label">Sale</div>{{end}}
                                 <ul class="product__hover">
                                     <li><a href="{{with .ImagePath}}{{.}}{{else}}/assets/img/placeholder.png{{end}}" class="image-popup"><span class="arrow_expand"></span></a></li>
-                                    <li><a href="#"><span class="icon_heart_alt"></span></a></li>
-                                    <li><a href="#"><span class="icon_bag_alt"></span></a></li>
+                                    <li><a href="#" class="btn-cart" data-id="{{.ID}}"><span class="icon_bag_alt"></span></a></li>
                                 </ul>
                             </div>
                             <div class="product__item__text">
