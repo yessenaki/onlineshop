@@ -33,18 +33,19 @@ $(document).ready(function() {
 
         var self = $(this);
         $.ajax({
-            url:"/admin/products/delete-image/",
+            url: "/admin/products/delete-image/",
             type: "POST",
             data: {"id": self.data("id")},
             dataType: "json",
             success: function(data) {
-                console.log(data)
+                // console.log(data);
                 if (data) {
                     self.closest(".col-4").remove();
                 }
             },
-            error: function(e){
-                console.log(e);
+            error: function(err){
+                // console.log(err);
+                alert("Sorry, something went wrong");
             }
         });
     });

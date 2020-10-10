@@ -230,12 +230,11 @@ func FindByParams(params map[string]interface{}) ([]Product, int, error) {
 
 		// get an image
 		f := file.File{}
-		err = config.DB.QueryRow("SELECT id, path FROM files WHERE product_id=$1 LIMIT 1", prod.ID).Scan(&f.ID, &f.Path)
-		if err != nil && err != sql.ErrNoRows {
-			return nil, 0, err
-		}
-		if f.ID > 0 {
+		err = config.DB.QueryRow("SELECT id, path FROM files WHERE product_id=$1", prod.ID).Scan(&f.ID, &f.Path)
+		if err == nil {
 			prod.ImagePath = f.Path
+		} else if err != sql.ErrNoRows {
+			return nil, 0, err
 		}
 
 		prods = append(prods, prod)

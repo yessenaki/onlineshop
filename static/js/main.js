@@ -109,7 +109,7 @@ Created: Colorib
         mouseDrag: false,
         startPosition: 'URLHash'
     }).on('changed.owl.carousel', function(event) {
-        var indexNum = event.item.index + 1;
+        var indexNum = event.item.index;
         product_thumbs(indexNum);
     });
 

@@ -429,12 +429,12 @@ func DeleteImage() http.Handler {
 		if r.Method == http.MethodPost {
 			id, _ := strconv.Atoi(r.FormValue("id"))
 			err := file.Destroy(id)
-			var success bool
-			if err == nil {
-				success = true
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
 			}
 
-			j, _ := json.Marshal(success)
+			j, _ := json.Marshal(true)
 			w.Header().Set("Content-Type", "application/json")
 			w.Write(j)
 		}
