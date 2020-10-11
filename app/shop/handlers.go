@@ -125,7 +125,7 @@ func Index() http.Handler {
 				Qstr   Qstr
 			}{
 				Header: Header{
-					Auth: helper.AuthUserFromContext(r.Context()),
+					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
 					Link: stype,
 				},
 				Ctgs:   ctgs,
@@ -173,7 +173,7 @@ func Details() http.Handler {
 				Images []file.File
 			}{
 				Header: Header{
-					Auth: helper.AuthUserFromContext(r.Context()),
+					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
 				},
 				Prod:   prod,
 				Images: images,

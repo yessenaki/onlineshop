@@ -51,7 +51,9 @@ func basic(next http.Handler) http.Handler {
 		u, _ := user.GetAuthUser(r)
 		if u.ID > 0 {
 			cookie, _ := r.Cookie("session_id")
-			cookie.MaxAge = 15
+			cookie.Path = "/"
+			cookie.HttpOnly = true
+			cookie.MaxAge = 3600
 			http.SetCookie(w, cookie)
 		}
 

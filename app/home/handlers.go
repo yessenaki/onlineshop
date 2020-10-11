@@ -4,7 +4,6 @@ import (
 	"io"
 	"net/http"
 	"onlineshop/app/user"
-	"onlineshop/config"
 	"onlineshop/helper"
 )
 
@@ -21,21 +20,18 @@ func Index() http.Handler {
 			return
 		}
 
-		data := struct {
-			Header Header
-		}{
-			Header: Header{
-				Auth: helper.AuthUserFromContext(r.Context()),
-				Link: "home",
-			},
-		}
-
 		if r.Method == http.MethodGet {
-			err := config.Tpl.ExecuteTemplate(w, "home.gohtml", data)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				return
+			data := struct {
+				Header Header
+			}{
+				Header: Header{
+					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
+					Link: "home",
+				},
 			}
+
+			helper.Render(w, "home.gohtml", data)
+			return
 		} else if r.Method == http.MethodPost {
 			io.WriteString(w, "POST /")
 		} else {

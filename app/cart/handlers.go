@@ -28,7 +28,7 @@ func Index() http.Handler {
 				Header Header
 			}{
 				Header: Header{
-					Auth: helper.AuthUserFromContext(r.Context()),
+					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
 				},
 			}
 
@@ -80,7 +80,7 @@ func Checkout() http.Handler {
 				Header Header
 			}{
 				Header: Header{
-					Auth: helper.AuthUserFromContext(r.Context()),
+					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
 				},
 			}
 

@@ -1,19 +1,13 @@
 package helper
 
 import (
-	"context"
 	"log"
 	"net/http"
-	"onlineshop/app/user"
 	"onlineshop/config"
 	"strconv"
 	"strings"
 	"time"
 )
-
-func AuthUserFromContext(ctx context.Context) user.User {
-	return ctx.Value(AuthUserKey).(user.User)
-}
 
 func DefineAction(r *http.Request) string {
 	p := strings.Trim(r.URL.Path, "/")

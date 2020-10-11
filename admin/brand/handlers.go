@@ -9,7 +9,7 @@ import (
 
 func Handle() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := helper.AuthUserFromContext(r.Context())
+		auth := r.Context().Value(helper.AuthUserKey).(user.User)
 		action := helper.DefineAction(r)
 		switch action {
 		case "index":

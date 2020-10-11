@@ -47,8 +47,12 @@
         </div>
         <div id="mobile-menu-wrap"></div>
         <div class="offcanvas__auth">
+            {{if .Auth.ID}}
+            <a href="/logout">Logout</a>
+            {{else}}
             <a href="/login">Login</a>
             <a href="/register">Register</a>
+            {{end}}
         </div>
     </div>
     <!-- Offcanvas Menu End -->
@@ -76,8 +80,8 @@
                                     <li><a href="./blog-details.html">Blog Details</a></li>
                                 </ul>
                             </li>
-                            <li><a href="/blog/">Blog</a></li>
-                            <li><a href="/contact/">Contact</a></li>
+                            <li class="{{if eq .Link `blog`}}active{{end}}"><a href="/blog/">Blog</a></li>
+                            <li class="{{if eq .Link `contact`}}active{{end}}"><a href="/contact/">Contact</a></li>
                         </ul>
                     </nav>
                 </div>
@@ -85,7 +89,7 @@
                     <div class="header__right">
                         <div class="header__right__auth">
                             {{if .Auth.ID}}
-                            <a href="/logout">Logout</a>
+                            <a href="/logout" id="authUser" data-id="{{.Auth.ID}}">Logout</a>
                             {{else}}
                             <a href="/login">Login</a>
                             <a href="/register">Register</a>
