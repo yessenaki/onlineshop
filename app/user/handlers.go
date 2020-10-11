@@ -1,17 +1,34 @@
 package user
 
 import (
+	"log"
 	"net/http"
-	"onlineshop/config"
-	"regexp"
-	"strings"
+	"onlineshop/helper"
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
+const maxAge = 3600
+
+// Header struct
+type Header struct {
+	Auth User
+	Link string
+}
+
 func Login() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/login/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
+			return
+		}
+
+		data := struct {
+			Header Header
+			User   *User
+		}{}
+
 		if r.Method == http.MethodGet {
 			// Check if session already exists
 			result, err := SessionExists(r)
@@ -24,55 +41,24 @@ func Login() http.Handler {
 				return
 			}
 
-			err = config.Tpl.ExecuteTemplate(w, "login.gohtml", nil)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			}
+			data.User = &User{}
+			helper.Render(w, "login.gohtml", data)
 			return
 		} else if r.Method == http.MethodPost {
 			user := &User{
-				Email: r.PostFormValue("email"),
-			}
-			password := r.PostFormValue("password")
-
-			// Form validation
-			vld := &Validator{
-				User:   user,
-				Errors: map[string]string{},
-			}
-			match := regexp.MustCompile(".+@.+\\..+").Match([]byte(user.Email))
-			if match == false {
-				vld.Errors["Email"] = "Please enter a valid email address"
-				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
-				if err != nil {
-					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				}
-				return
+				Email:    r.FormValue("email"),
+				Password: r.FormValue("password"),
 			}
 
-			result, err := user.exists()
+			result, err := user.validate(false)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
 			}
-			if result == false {
-				vld.Errors["Email"] = "User not found with this email address"
-				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
-				if err != nil {
-					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				}
-				return
-			}
 
-			// Does the entered password match the stored password?
-			err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
-			if err != nil {
-				user.Password = password
-				vld.Errors["Password"] = "Password does not match, please try again"
-				err := config.Tpl.ExecuteTemplate(w, "login.gohtml", vld)
-				if err != nil {
-					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				}
+			if result == false {
+				data.User = user
+				helper.Render(w, "login.gohtml", data)
 				return
 			}
 
@@ -80,15 +66,18 @@ func Login() http.Handler {
 			sessionID, _ := uuid.NewV4()
 			err = createSession(sessionID.String(), user.ID)
 			if err != nil {
+				log.Println(err)
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
 			}
 
 			// Create a new session in the browser cookie
 			cookie := &http.Cookie{
-				Name:   "session_id",
-				Value:  sessionID.String(),
-				MaxAge: 15,
+				Name:     "session_id",
+				Value:    sessionID.String(),
+				Path:     "/",
+				HttpOnly: true,
+				MaxAge:   maxAge,
 			}
 			http.SetCookie(w, cookie)
 
@@ -103,6 +92,16 @@ func Login() http.Handler {
 
 func Register() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/register/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
+			return
+		}
+
+		data := struct {
+			Header Header
+			User   *User
+		}{}
+
 		if r.Method == http.MethodGet {
 			// Check if session already exists
 			result, err := SessionExists(r)
@@ -115,10 +114,8 @@ func Register() http.Handler {
 				return
 			}
 
-			err = config.Tpl.ExecuteTemplate(w, "register.gohtml", nil)
-			if err != nil {
-				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-			}
+			data.User = &User{}
+			helper.Render(w, "register.gohtml", data)
 			return
 		} else if r.Method == http.MethodPost {
 			user := &User{
@@ -126,31 +123,19 @@ func Register() http.Handler {
 				LastName:  r.PostFormValue("last_name"),
 				Email:     r.PostFormValue("email"),
 				Password:  r.PostFormValue("password"),
+				Password2: r.PostFormValue("password_confirm"),
 			}
-			passwordConfirm := r.PostFormValue("password_confirm")
 
 			// Form validation
-			vld := &Validator{User: user}
-			if vld.validate(passwordConfirm) == false {
-				err := config.Tpl.ExecuteTemplate(w, "register.gohtml", vld)
-				if err != nil {
-					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				}
-				return
-			}
-
-			// Check if user already exists
-			result, err := user.exists()
+			result, err := user.validate(true)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
 			}
-			if result {
-				vld.Errors["Email"] = "The email address is already taken. Please choose another one"
-				err := config.Tpl.ExecuteTemplate(w, "register.gohtml", vld)
-				if err != nil {
-					http.Error(w, http.StatusText(500), http.StatusInternalServerError)
-				}
+
+			if result == false {
+				data.User = user
+				helper.Render(w, "register.gohtml", data)
 				return
 			}
 
@@ -163,7 +148,7 @@ func Register() http.Handler {
 			user.Password = string(passwordSlice)
 
 			// Create a new user
-			userID, err := user.createUser()
+			userID, err := user.create()
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
@@ -179,9 +164,11 @@ func Register() http.Handler {
 
 			// Create a new session in the browser cookie
 			cookie := &http.Cookie{
-				Name:   "session_id",
-				Value:  sessionID.String(),
-				MaxAge: 15,
+				Name:     "session_id",
+				Value:    sessionID.String(),
+				Path:     "/",
+				HttpOnly: true,
+				MaxAge:   maxAge,
 			}
 			http.SetCookie(w, cookie)
 
@@ -216,44 +203,14 @@ func Logout() http.Handler {
 
 		// Remove the cookie from browser
 		cookie = &http.Cookie{
-			Name:   "session_id",
-			Value:  "",
-			MaxAge: -1,
+			Name:     "session_id",
+			Value:    "",
+			Path:     "/",
+			HttpOnly: true,
+			MaxAge:   -1,
 		}
 		http.SetCookie(w, cookie)
 
 		http.Redirect(w, r, "/login", http.StatusSeeOther)
 	})
-}
-
-func (vld *Validator) validate(passwordConfirm string) bool {
-	vld.Errors = map[string]string{}
-	firstName := strings.TrimSpace(vld.User.FirstName)
-	lastName := strings.TrimSpace(vld.User.LastName)
-	email := strings.TrimSpace(vld.User.Email)
-	password := strings.TrimSpace(vld.User.Password)
-	passwordConfirm = strings.TrimSpace(passwordConfirm)
-
-	if firstName == "" || len(firstName) > 20 {
-		vld.Errors["FirstName"] = "The field First Name must be a string with a maximum length of 20"
-	}
-
-	if lastName == "" || len(lastName) > 20 {
-		vld.Errors["LastName"] = "The field Last Name must be a string with a maximum length of 20"
-	}
-
-	match := regexp.MustCompile(".+@.+\\..+").Match([]byte(email))
-	if match == false {
-		vld.Errors["Email"] = "Please enter a valid email address"
-	}
-
-	if len(password) < 6 || len(password) > 20 {
-		vld.Errors["Password"] = "Your password must be 6-12 characters long"
-	}
-
-	if password != passwordConfirm {
-		vld.Errors["PasswordConfirm"] = "The specified passwords do not match"
-	}
-
-	return len(vld.Errors) == 0
 }

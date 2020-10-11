@@ -1,4 +1,4 @@
-{{template "header"}}
+{{template "header" .Header}}
 <!-- Login Section Begin -->
 <section class="login spad">
     <div class="container">
@@ -6,23 +6,23 @@
             <div class="col-lg-4 offset-lg-4 col-md-4 offset-md-4 text-center">
                 <div class="login__form">
                     <h5>Login</h5>
-                    <form action="/login" method="POST" novalidate>
+                    <form action="/login/" method="POST" novalidate>
                         <input
                             type="email"
                             name="email"
                             placeholder="Email"
-                            {{if .Errors.Email}}class="vld-error"{{end}}
+                            {{if .User.Errors.Email}}class="vld-error"{{end}}
                             {{with .User.Email}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.Email}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.Email}}<p class="vld-error">{{.}}</p>{{end}}
                         <input
                             type="password"
                             name="password"
                             placeholder="Password"
-                            {{if .Errors.Password}}class="vld-error"{{end}}
+                            {{if .User.Errors.Password}}class="vld-error"{{end}}
                             {{with .User.Password}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.Password}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.Password}}<p class="vld-error">{{.}}</p>{{end}}
                         <button type="submit" class="site-btn">Sign In With Email</button>
                     </form>
                 </div>

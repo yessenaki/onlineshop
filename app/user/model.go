@@ -4,7 +4,11 @@ import (
 	"database/sql"
 	"net/http"
 	"onlineshop/config"
+	"regexp"
+	"strings"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // User struct
@@ -16,34 +20,83 @@ type User struct {
 	Password  string    `db:"password"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	Password2 string
+	Errors    map[string]string
 }
 
-// Validator struct
-type Validator struct {
-	User   *User
-	Errors map[string]string
+func (u *User) validate(isRgs bool) (bool, error) {
+	u.Errors = make(map[string]string)
+	email := strings.TrimSpace(u.Email)
+	var eu User
+	var err error
+
+	match := regexp.MustCompile(".+@.+\\..+").Match([]byte(email))
+	if match == false {
+		u.Errors["Email"] = "Please enter a valid email address"
+	} else {
+		eu, err = getExistingUser(email)
+		if err != nil {
+			return false, err
+		}
+
+		if isRgs && eu.ID > 0 {
+			u.Errors["Email"] = "The email address is already taken. Please choose another one"
+		}
+
+		if !isRgs && eu.ID == 0 {
+			u.Errors["Email"] = "User not found with this email address"
+		}
+	}
+
+	// if it's registration
+	if isRgs {
+		fname := strings.TrimSpace(u.FirstName)
+		lname := strings.TrimSpace(u.LastName)
+
+		if fname == "" || len(fname) > 20 {
+			u.Errors["FirstName"] = "The field First Name must be a string with a maximum length of 20"
+		}
+
+		if lname == "" || len(lname) > 20 {
+			u.Errors["LastName"] = "The field Last Name must be a string with a maximum length of 20"
+		}
+
+		if len(u.Password) < 6 || len(u.Password) > 20 {
+			u.Errors["Password"] = "Your password must be 6-20 characters long"
+		}
+
+		if u.Password != u.Password2 {
+			u.Errors["Password2"] = "The specified passwords do not match"
+		}
+	} else {
+		// Does the entered password match the stored password?
+		err := bcrypt.CompareHashAndPassword([]byte(eu.Password), []byte(u.Password))
+		if err != nil {
+			u.Errors["Password"] = "Password does not match, please try again"
+		}
+	}
+
+	return len(u.Errors) == 0, nil
 }
 
-func (u *User) createUser() (int, error) {
-	var lastInsertedID int
+func (u *User) create() (int, error) {
+	var id int
 	sqlStatement := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&lastInsertedID)
+	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
-	return lastInsertedID, nil
+	return id, nil
 }
 
-func (u *User) exists() (bool, error) {
-	row := config.DB.QueryRow("SELECT id, password FROM users WHERE email=$1", u.Email)
-	err := row.Scan(&u.ID, &u.Password)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return false, nil
-		}
-		return false, err
+func getExistingUser(email string) (User, error) {
+	var eu User // existing user
+	row := config.DB.QueryRow("SELECT * FROM users WHERE email=$1", email)
+	err := row.Scan(&eu.ID, &eu.FirstName, &eu.LastName, &eu.Email, &eu.Password, &eu.CreatedAt, &eu.UpdatedAt)
+	if err != nil && err != sql.ErrNoRows {
+		return eu, err
 	}
-	return true, nil
+	return eu, nil
 }
 
 func createSession(sessionID string, userID int) error {
@@ -52,8 +105,8 @@ func createSession(sessionID string, userID int) error {
 		return err
 	}
 
-	sqlStatement := "INSERT INTO sessions (session_id, user_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0))"
-	_, err = config.DB.Exec(sqlStatement, sessionID, userID)
+	stm := "INSERT INTO sessions (session_id, user_id, created_at, updated_at) VALUES ($1, $2, NOW()::timestamp(0), NOW()::timestamp(0))"
+	_, err = config.DB.Exec(stm, sessionID, userID)
 	if err != nil {
 		return err
 	}

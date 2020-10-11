@@ -1,4 +1,4 @@
-{{template "header"}}
+{{template "header" .Header}}
 <!-- Register Section Begin -->
 <section class="register spad">
     <div class="container">
@@ -6,46 +6,47 @@
             <div class="col-lg-4 offset-lg-4 col-md-4 offset-md-4 text-center">
                 <div class="login__form">
                     <h5>Register</h5>
-                    <form action="/register" method="POST" novalidate>
+                    <form action="/register/" method="POST" novalidate>
                         <input
                             type="text"
                             name="first_name"
                             placeholder="First Name"
-                            {{if .Errors.FirstName}}class="vld-error"{{end}}
+                            {{if .User.Errors.FirstName}}class="vld-error"{{end}}
                             {{with .User.FirstName}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.FirstName}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.FirstName}}<p class="vld-error">{{.}}</p>{{end}}
                         <input
                             type="text"
                             name="last_name"
                             placeholder="Last Name"
-                            {{if .Errors.LastName}}class="vld-error"{{end}}
+                            {{if .User.Errors.LastName}}class="vld-error"{{end}}
                             {{with .User.LastName}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.LastName}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.LastName}}<p class="vld-error">{{.}}</p>{{end}}
                         <input
                             type="email"
                             name="email"
                             placeholder="Email"
-                            {{if .Errors.Email}}class="vld-error"{{end}}
+                            {{if .User.Errors.Email}}class="vld-error"{{end}}
                             {{with .User.Email}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.Email}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.Email}}<p class="vld-error">{{.}}</p>{{end}}
                         <input
                             type="password"
                             name="password"
                             placeholder="Password"
-                            {{if .Errors.Password}}class="vld-error"{{end}}
+                            {{if .User.Errors.Password}}class="vld-error"{{end}}
                             {{with .User.Password}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.Password}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.Password}}<p class="vld-error">{{.}}</p>{{end}}
                         <input
                             type="password"
                             name="password_confirm"
                             placeholder="Confirm Password"
-                            {{if .Errors.PasswordConfirm}}class="vld-error"{{end}}
+                            {{if .User.Errors.Password2}}class="vld-error"{{end}}
+                            {{with .User.Password2}}value="{{.}}"{{end}}
                         >
-                        {{with .Errors.PasswordConfirm}}<p class="vld-error">{{.}}</p>{{end}}
+                        {{with .User.Errors.Password2}}<p class="vld-error">{{.}}</p>{{end}}
                         <button type="submit" class="site-btn">Create Account</button>
                     </form>
                 </div>
