@@ -3,14 +3,13 @@ package home
 import (
 	"io"
 	"net/http"
-	"onlineshop/app/user"
 	"onlineshop/helper"
 )
 
 // Header struct
 type Header struct {
-	Auth user.User
-	Link string
+	Context helper.ContextData
+	Link    string
 }
 
 func Index() http.Handler {
@@ -25,8 +24,8 @@ func Index() http.Handler {
 				Header Header
 			}{
 				Header: Header{
-					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
-					Link: "home",
+					Context: helper.GetContextData(r.Context()),
+					Link:    "home",
 				},
 			}
 

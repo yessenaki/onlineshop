@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"onlineshop/config"
+	"onlineshop/helper"
 	"regexp"
 	"strings"
 	"time"
@@ -31,21 +32,13 @@ func (u *User) validate(isRgs bool) (bool, error) {
 	var err error
 
 	match := regexp.MustCompile(".+@.+\\..+").Match([]byte(email))
-	if match == false {
-		u.Errors["Email"] = "Please enter a valid email address"
-	} else {
+	if match {
 		eu, err = getExistingUser(email)
 		if err != nil {
 			return false, err
 		}
-
-		if isRgs && eu.ID > 0 {
-			u.Errors["Email"] = "The email address is already taken. Please choose another one"
-		}
-
-		if !isRgs && eu.ID == 0 {
-			u.Errors["Email"] = "User not found with this email address"
-		}
+	} else {
+		u.Errors["Email"] = "Please enter a valid email address"
 	}
 
 	// if it's registration
@@ -61,6 +54,10 @@ func (u *User) validate(isRgs bool) (bool, error) {
 			u.Errors["LastName"] = "The field Last Name must be a string with a maximum length of 20"
 		}
 
+		if eu.ID > 0 {
+			u.Errors["Email"] = "The email address is already taken. Please choose another one"
+		}
+
 		if len(u.Password) < 6 || len(u.Password) > 20 {
 			u.Errors["Password"] = "Your password must be 6-20 characters long"
 		}
@@ -69,6 +66,12 @@ func (u *User) validate(isRgs bool) (bool, error) {
 			u.Errors["Password2"] = "The specified passwords do not match"
 		}
 	} else {
+		u.ID = eu.ID
+
+		if match && eu.ID == 0 {
+			u.Errors["Email"] = "User not found with this email address"
+		}
+
 		// Does the entered password match the stored password?
 		err := bcrypt.CompareHashAndPassword([]byte(eu.Password), []byte(u.Password))
 		if err != nil {
@@ -81,8 +84,8 @@ func (u *User) validate(isRgs bool) (bool, error) {
 
 func (u *User) create() (int, error) {
 	var id int
-	sqlStatement := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
-	err := config.DB.QueryRow(sqlStatement, u.FirstName, u.LastName, u.Email, u.Password).Scan(&id)
+	stm := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	err := config.DB.QueryRow(stm, u.FirstName, u.LastName, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -128,28 +131,26 @@ func SessionExists(r *http.Request) (bool, error) {
 	}
 
 	var result bool
-	sqlStatement := "SELECT EXISTS(SELECT 1 FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1))"
-	err = config.DB.QueryRow(sqlStatement, cookie.Value).Scan(&result)
+	stm := "SELECT EXISTS(SELECT 1 FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1 LIMIT 1))"
+	err = config.DB.QueryRow(stm, cookie.Value).Scan(&result)
 	if err != nil {
 		return false, err
 	}
 	return result, nil
 }
 
-func GetAuthUser(r *http.Request) (User, error) {
-	user := User{}
+func GetAuthUser(r *http.Request) (helper.Auth, error) {
+	auth := helper.Auth{}
 	cookie, err := r.Cookie("session_id")
 	if err != nil {
-		return user, nil
+		return auth, nil
 	}
 
 	row := config.DB.QueryRow("SELECT * FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1)", cookie.Value)
-	err = row.Scan(&user.ID, &user.FirstName, &user.LastName, &user.Email, &user.Password, &user.CreatedAt, &user.UpdatedAt)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return user, nil
-		}
-		return user, err
+	err = row.Scan(&auth.ID, &auth.FirstName, &auth.LastName, &auth.Email, &auth.Password, &auth.CreatedAt, &auth.UpdatedAt)
+	if err != nil && err != sql.ErrNoRows {
+		return auth, err
 	}
-	return user, nil
+
+	return auth, nil
 }

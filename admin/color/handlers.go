@@ -2,26 +2,25 @@ package color
 
 import (
 	"net/http"
-	"onlineshop/app/user"
 	"onlineshop/helper"
 	"strconv"
 )
 
 func Handle() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		auth := r.Context().Value(helper.AuthUserKey).(user.User)
+		ctx := helper.GetContextData(r.Context())
 		action := helper.DefineAction(r)
 		switch action {
 		case "index":
-			index(w, r, auth)
+			index(w, r, ctx)
 		case "create":
-			create(w, r, auth)
+			create(w, r, ctx)
 		case "store":
-			store(w, r, auth)
+			store(w, r, ctx)
 		case "edit":
-			edit(w, r, auth)
+			edit(w, r, ctx)
 		case "update":
-			update(w, r, auth)
+			update(w, r, ctx)
 		case "destroy":
 			destroy(w, r)
 		case "notFound":
@@ -32,10 +31,10 @@ func Handle() http.Handler {
 	})
 }
 
-func index(w http.ResponseWriter, r *http.Request, auth user.User) {
+func index(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	type Data struct {
-		Auth   user.User
-		Colors []Color
+		Context helper.ContextData
+		Colors  []Color
 	}
 
 	colors, err := AllColors()
@@ -45,38 +44,40 @@ func index(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	data := Data{
-		Auth:   auth,
-		Colors: colors,
+		Context: ctx,
+		Colors:  colors,
 	}
 	helper.Render(w, "color.gohtml", data)
 	return
 }
 
-func create(w http.ResponseWriter, r *http.Request, auth user.User) {
+func create(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	type Data struct {
-		Auth  user.User
-		Color Color
+		Context helper.ContextData
+		Color   Color
 	}
 
-	data := Data{Auth: auth}
+	data := Data{
+		Context: ctx,
+	}
 	helper.Render(w, "color_form.gohtml", data)
 	return
 }
 
-func store(w http.ResponseWriter, r *http.Request, auth user.User) {
+func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	color := &Color{
 		Name: r.FormValue("name"),
 	}
 
 	if color.validate() == false {
 		type Data struct {
-			Auth  user.User
-			Color *Color
+			Context helper.ContextData
+			Color   *Color
 		}
 
 		data := Data{
-			Auth:  auth,
-			Color: color,
+			Context: ctx,
+			Color:   color,
 		}
 		helper.Render(w, "color_form.gohtml", data)
 		return
@@ -92,10 +93,10 @@ func store(w http.ResponseWriter, r *http.Request, auth user.User) {
 	return
 }
 
-func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
+func edit(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	type Data struct {
-		Auth  user.User
-		Color Color
+		Context helper.ContextData
+		Color   Color
 	}
 
 	id, err := strconv.Atoi(r.FormValue("id"))
@@ -115,14 +116,14 @@ func edit(w http.ResponseWriter, r *http.Request, auth user.User) {
 	}
 
 	data := Data{
-		Auth:  auth,
-		Color: color,
+		Context: ctx,
+		Color:   color,
 	}
 	helper.Render(w, "color_form.gohtml", data)
 	return
 }
 
-func update(w http.ResponseWriter, r *http.Request, auth user.User) {
+func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	id, err := strconv.Atoi(r.FormValue("_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -136,13 +137,13 @@ func update(w http.ResponseWriter, r *http.Request, auth user.User) {
 
 	if color.validate() == false {
 		type Data struct {
-			Auth  user.User
-			Color *Color
+			Context helper.ContextData
+			Color   *Color
 		}
 
 		data := Data{
-			Auth:  auth,
-			Color: color,
+			Context: ctx,
+			Color:   color,
 		}
 		helper.Render(w, "color_form.gohtml", data)
 		return

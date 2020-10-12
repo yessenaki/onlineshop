@@ -6,14 +6,13 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"onlineshop/app/user"
 	"onlineshop/helper"
 )
 
 // Header struct
 type Header struct {
-	Auth user.User
-	Link string
+	Context helper.ContextData
+	Link    string
 }
 
 func Index() http.Handler {
@@ -28,7 +27,7 @@ func Index() http.Handler {
 				Header Header
 			}{
 				Header: Header{
-					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
+					Context: helper.GetContextData(r.Context()),
 				},
 			}
 
@@ -48,18 +47,26 @@ func Index() http.Handler {
 				return
 			}
 
+			data := struct {
+				Status  bool
+				Message string
+			}{
+				Status:  true,
+				Message: "The item successfully added to your cart",
+			}
+
 			exists, err := uc.store()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 
-			msg := "The item successfully added to your cart"
 			if exists {
-				msg = "The item is already in the cart"
+				data.Status = false
+				data.Message = "The item is already in the cart"
 			}
 
-			j, err := json.Marshal(msg)
+			j, err := json.Marshal(data)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -80,7 +87,7 @@ func Checkout() http.Handler {
 				Header Header
 			}{
 				Header: Header{
-					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
+					Context: helper.GetContextData(r.Context()),
 				},
 			}
 

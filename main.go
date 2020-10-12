@@ -48,16 +48,21 @@ func main() {
 // Basic middleware
 func basic(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cd := helper.ContextData{}
 		u, _ := user.GetAuthUser(r)
 		if u.ID > 0 {
 			cookie, _ := r.Cookie("session_id")
 			cookie.Path = "/"
-			cookie.HttpOnly = true
 			cookie.MaxAge = 3600
+			cookie.HttpOnly = true
 			http.SetCookie(w, cookie)
+
+			qnt, _ := cart.GetItemQuantity(u.ID)
+			cd.Auth = u
+			cd.ItemQnt = qnt
 		}
 
-		ctx := context.WithValue(r.Context(), helper.AuthUserKey, u)
+		ctx := context.WithValue(r.Context(), helper.ContextDataKey, cd)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

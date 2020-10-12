@@ -67,3 +67,14 @@ func (uc UserCart) store() (bool, error) {
 
 	return false, nil
 }
+
+func GetItemQuantity(userID int) (int, error) {
+	var qnt int
+	stm := "SELECT count(*) FROM cart_items WHERE cart_id=(SELECT id FROM carts WHERE user_id=$1 LIMIT 1)"
+	err := config.DB.QueryRow(stm, userID).Scan(&qnt)
+	if err != nil && err != sql.ErrNoRows {
+		return 0, err
+	}
+
+	return qnt, nil
+}

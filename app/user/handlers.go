@@ -13,7 +13,7 @@ const maxAge = 3600
 
 // Header struct
 type Header struct {
-	Auth User
+	Context helper.ContextData
 	Link string
 }
 
@@ -211,6 +211,6 @@ func Logout() http.Handler {
 		}
 		http.SetCookie(w, cookie)
 
-		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		http.Redirect(w, r, "/login/", http.StatusSeeOther)
 	})
 }

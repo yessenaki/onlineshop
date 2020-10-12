@@ -10,15 +10,14 @@ import (
 	"onlineshop/admin/file"
 	"onlineshop/admin/product"
 	"onlineshop/admin/size"
-	"onlineshop/app/user"
 	"onlineshop/helper"
 	"strconv"
 )
 
 // Header struct
 type Header struct {
-	Auth user.User
-	Link string
+	Context helper.ContextData
+	Link    string
 }
 
 // Pagination struct
@@ -125,8 +124,8 @@ func Index() http.Handler {
 				Qstr   Qstr
 			}{
 				Header: Header{
-					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
-					Link: stype,
+					Context: helper.GetContextData(r.Context()),
+					Link:    stype,
 				},
 				Ctgs:   ctgs,
 				Brands: brands,
@@ -173,7 +172,7 @@ func Details() http.Handler {
 				Images []file.File
 			}{
 				Header: Header{
-					Auth: r.Context().Value(helper.AuthUserKey).(user.User),
+					Context: helper.GetContextData(r.Context()),
 				},
 				Prod:   prod,
 				Images: images,

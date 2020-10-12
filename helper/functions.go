@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"onlineshop/config"
@@ -78,4 +79,8 @@ func currentTime() string {
 	t := time.Now()
 	datetime := t.Format("2006-01-02 15:04:05")
 	return datetime
+}
+
+func GetContextData(ctx context.Context) ContextData {
+	return ctx.Value(ContextDataKey).(ContextData)
 }
