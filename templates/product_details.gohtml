@@ -28,13 +28,7 @@
                     <div class="product__details__price">$ {{fmtprice .Prod.Price}} {{with .Prod.OldPrice}}<span>$ {{fmtprice .}}</span>{{end}}</div>
                     <p>{{.Prod.Description}}</p>
                     <div class="product__details__button">
-                        <div class="quantity">
-                            <span>Quantity:</span>
-                            <div class="pro-qty">
-                                <input type="text" value="1">
-                            </div>
-                        </div>
-                        <a href="#" class="cart-btn"><span class="icon_bag_alt"></span> Add to cart</a>
+                        <a href="#" class="cart-btn" data-id="{{.Prod.ID}}"><span class="icon_bag_alt"></span> Add to cart</a>
                     </div>
                     <div class="product__details__widget">
                         <ul>

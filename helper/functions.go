@@ -2,6 +2,7 @@ package helper
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"onlineshop/config"
@@ -83,4 +84,9 @@ func currentTime() string {
 
 func GetContextData(ctx context.Context) ContextData {
 	return ctx.Value(ContextDataKey).(ContextData)
+}
+
+func PriceToString(price int) string {
+	fprice := (float64(price) + 0.1) / 100
+	return fmt.Sprintf("%.2f", fprice)
 }

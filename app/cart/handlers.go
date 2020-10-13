@@ -23,12 +23,25 @@ func Index() http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
+			ctx := helper.GetContextData(r.Context())
+			cart := &Cart{
+				UserID: ctx.Auth.ID,
+			}
+
+			items, err := cart.getItems()
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
 			data := struct {
 				Header Header
+				Items  []Item
 			}{
 				Header: Header{
-					Context: helper.GetContextData(r.Context()),
+					Context: ctx,
 				},
+				Items: items,
 			}
 
 			helper.Render(w, "cart.gohtml", data)
@@ -52,7 +65,7 @@ func Index() http.Handler {
 				Message string
 			}{
 				Status:  true,
-				Message: "The item successfully added to your cart",
+				Message: "This item successfully added to your cart",
 			}
 
 			exists, err := uc.store()
@@ -63,7 +76,52 @@ func Index() http.Handler {
 
 			if exists {
 				data.Status = false
-				data.Message = "The item is already in the cart"
+				data.Message = "This item is already in the cart"
+			}
+
+			j, err := json.Marshal(data)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		} else if r.Method == http.MethodPut {
+			var uc UserCart
+			err := helper.DecodeJSONBody(w, r, &uc)
+			if err != nil {
+				var mr *helper.MalformedRequest
+				if errors.As(err, &mr) {
+					http.Error(w, mr.Msg, mr.Status)
+				} else {
+					log.Println(err.Error())
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+
+			items, err := uc.changeQnt()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var subtotal int
+			var total int
+			for _, item := range items {
+				if item.ProductID == uc.ProductID {
+					subtotal = item.Price * item.Quantity
+				}
+
+				total = total + (item.Price * item.Quantity)
+			}
+
+			data := struct {
+				Subtotal string
+				Total    string
+			}{
+				Subtotal: helper.PriceToString(subtotal),
+				Total:    helper.PriceToString(total),
 			}
 
 			j, err := json.Marshal(data)

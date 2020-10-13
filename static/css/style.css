@@ -2137,11 +2137,12 @@ ol {
 .shop__cart__table tbody tr .cart__product__item img {
 	float: left;
 	margin-right: 25px;
+	height: 120px;
 }
 
 .shop__cart__table tbody tr .cart__product__item .cart__product__item__title {
 	overflow: hidden;
-	padding-top: 23px;
+	padding-top: 30px;
 }
 
 .shop__cart__table tbody tr .cart__product__item .cart__product__item__title h6 {

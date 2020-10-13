@@ -116,24 +116,80 @@
         $(location).attr("href", url);
     }
 
-    $(".btn-cart").click(function(e) {
+    $(".cart-btn").click(function(e) {
         e.preventDefault();
+        if ($("#authUser").length == 0) {
+            $(location).attr("href", "/login/");
+            return
+        }
+
+        var userID = $("#authUser").data("id");
+        var productID = $(this).data("id");
         var data = {
-            user_id: 1,
-            product_id: parseInt($(this).data("id")),
+            user_id: parseInt(userID),
+            product_id: parseInt(productID),
             quantity: 1
         };
+
         $.ajax({
             url: "/cart/",
             type: "POST",
             contentType: "application/json",
             data: JSON.stringify(data),
             dataType: "json",
-            success: function(msg) {
-                alert(msg);
+            success: function(data) {
+                // console.log(data);
+                if (data.Status) {
+                    var itemQnt = $("#itemQnt").html();
+                    var newItemQnt = parseInt(itemQnt) + 1;
+                    $("#itemQnt").html(newItemQnt);
+                }
+
+                alert(data.Message);
             },
             error: function(err){
                 // console.log(err);
+                alert("Sorry, something went wrong");
+            }
+        });
+    });
+
+    $(".qtybtn").click(function() {
+        var self = $(this);
+		var oldValue = self.parent().find("input").val();
+		if (self.hasClass("inc")) {
+			var newVal = parseFloat(oldValue) + 1;
+		} else {
+			// Don't allow decrementing below zero
+			if (oldValue > 0) {
+				var newVal = parseFloat(oldValue) - 1;
+			} else {
+				newVal = 0;
+			}
+        }
+
+        var cartID = self.closest("tr").data("cart");
+        var productID = self.closest("tr").data("product");
+        var data = {
+            cart_id: parseInt(cartID),
+            product_id: parseInt(productID),
+            quantity: newVal
+        };
+
+        $.ajax({
+            url: "/cart/",
+            type: "PUT",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            dataType: "json",
+            success: function(data) {
+                console.log(data);
+                self.parent().find("input").val(newVal);
+                self.closest("tr").find(".cart__total").html("$ " + data.Subtotal);
+                $("#totalSum").html("$ " + data.Total);
+            },
+            error: function(err) {
+                console.log(err);
                 alert("Sorry, something went wrong");
             }
         });

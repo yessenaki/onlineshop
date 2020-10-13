@@ -13,6 +13,8 @@ func init() {
 	funcMap := template.FuncMap{
 		"fmtprice": priceToString,
 		"fmtdt":    datetimeToString,
+		"add":      add,
+		"mul":      mul,
 	}
 
 	Tpl = template.Must(template.New("").Funcs(funcMap).ParseGlob("templates/*.gohtml"))
@@ -27,4 +29,12 @@ func priceToString(price int) string {
 
 func datetimeToString(dt time.Time) string {
 	return dt.Format("2006-01-02 15:04:05")
+}
+
+func add(x int, y int) int {
+	return x + y
+}
+
+func mul(x int, y int) int {
+	return x * y
 }
