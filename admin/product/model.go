@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"fmt"
 	"mime/multipart"
-	"onlineshop/admin/file"
 	"onlineshop/config"
 	"onlineshop/helper"
 	"strconv"
@@ -181,37 +180,41 @@ func FindOne(id int) (Product, error) {
 func FindByParams(params map[string]interface{}) ([]Product, int, error) {
 	var stm string
 	if params["ctgID"] != 0 {
-		stm = fmt.Sprintf(stm+" AND category_id=%d", params["ctgID"])
+		stm = fmt.Sprintf(stm+" AND p.category_id=%d", params["ctgID"])
 	}
 
 	if params["brands"] != "" {
 		ids := arrangeList(params["brands"].(string))
-		stm = fmt.Sprintf(stm+" AND brand_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND p.brand_id IN (%s)", ids)
 	}
 
 	if params["sizes"] != "" {
 		ids := arrangeList(params["sizes"].(string))
-		stm = fmt.Sprintf(stm+" AND size_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND p.size_id IN (%s)", ids)
 	}
 
 	if params["colors"] != "" {
 		ids := arrangeList(params["colors"].(string))
-		stm = fmt.Sprintf(stm+" AND color_id IN (%s)", ids)
+		stm = fmt.Sprintf(stm+" AND p.color_id IN (%s)", ids)
 	}
 
 	var quantity int
-	err := config.DB.QueryRow("SELECT count(*) FROM products WHERE gender=$1 AND is_kids=$2"+stm, params["gender"], params["isKids"]).Scan(&quantity)
+	qstm := "SELECT count(*) FROM products AS p WHERE p.gender=$1 AND p.is_kids=$2"
+	err := config.DB.QueryRow(qstm+stm, params["gender"], params["isKids"]).Scan(&quantity)
 	if err != nil {
 		return nil, 0, err
 	}
 
-	stm = stm + " ORDER BY id DESC"
+	stm = stm + " ORDER BY p.id DESC"
 
 	resultsPerPage := 9
 	offset := (params["page"].(int) - 1) * resultsPerPage
 	stm = fmt.Sprintf(stm+" LIMIT %d OFFSET %d", resultsPerPage, offset)
 
-	rows, err := config.DB.Query("SELECT * FROM products WHERE gender=$1 AND is_kids=$2"+stm, params["gender"], params["isKids"])
+	pstm := `WITH images AS (SELECT DISTINCT ON (product_id) * FROM files ORDER BY product_id, id)
+		SELECT p.*, i.path AS image_path FROM products AS p INNER JOIN images AS i
+		ON p.id=i.product_id WHERE p.gender=$1 AND p.is_kids=$2`
+	rows, err := config.DB.Query(pstm+stm, params["gender"], params["isKids"])
 	if err != nil {
 		return nil, 0, err
 	}
@@ -222,18 +225,9 @@ func FindByParams(params map[string]interface{}) ([]Product, int, error) {
 		prod := Product{}
 		err := rows.Scan(
 			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount, &prod.DscPercent,
-			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Description,
+			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Description, &prod.ImagePath,
 		)
 		if err != nil {
-			return nil, 0, err
-		}
-
-		// get an image
-		f := file.File{}
-		err = config.DB.QueryRow("SELECT id, path FROM files WHERE product_id=$1", prod.ID).Scan(&f.ID, &f.Path)
-		if err == nil {
-			prod.ImagePath = f.Path
-		} else if err != sql.ErrNoRows {
 			return nil, 0, err
 		}
 
