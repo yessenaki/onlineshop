@@ -1,0 +1,41 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>{{if .Tag.ID}}Update{{else}}Create{{end}} post tag</h2>
+                    {{with .Tag.ID}}
+                    <form action="/admin/post-tags/" method="POST">
+                        <input type="hidden" name="_method" value="DELETE">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        <button type="submit" class="btn btn-secondary btn-danger btn-delete">Delete</a>
+                    </form>
+                    {{end}}
+                </div>
+                <div class="card-body">
+                    <form action="/admin/post-tags/" method="POST" novalidate>
+                        {{with .Tag.ID}}
+                        <input type="hidden" name="_method" value="PUT">
+                        <input type="hidden" name="_id" value="{{.}}">
+                        {{end}}
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" name="name" id="name" placeholder="Enter name"
+                                class="form-control{{if .Tag.Errors.Name}} is-invalid{{end}}"
+                                {{with .Tag.Name}}value="{{.}}"{{end}}>
+                            {{with .Tag.Errors.Name}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
+                        </div>
+                        <div class="form-footer pt-4 pt-5 mt-4 border-top">
+                            <button type="submit" class="btn btn-primary btn-default">Submit</button>
+                            <a href="/admin/post-tags/" class="btn btn-secondary btn-default">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}
