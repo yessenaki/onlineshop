@@ -159,3 +159,36 @@ func GetItemQuantity(userID int) (int, error) {
 
 	return qnt, nil
 }
+
+func (uc *UserCart) deleteItem() ([]Item, error) {
+	_, err := config.DB.Exec("DELETE FROM cart_items WHERE cart_id=$1 AND product_id=$2", uc.CartID, uc.ProductID)
+	if err != nil {
+		return nil, err
+	}
+
+	var items []Item
+	stm := `SELECT ci.id, ci.quantity, p.price AS price
+		FROM cart_items AS ci
+		INNER JOIN products AS p ON ci.product_id=p.id
+		WHERE ci.cart_id=$1`
+	rows, err := config.DB.Query(stm, uc.CartID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var item Item
+		err := rows.Scan(&item.ID, &item.Quantity, &item.Price)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return items, nil
+}

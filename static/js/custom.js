@@ -183,13 +183,40 @@
             data: JSON.stringify(data),
             dataType: "json",
             success: function(data) {
-                console.log(data);
+                // console.log(data);
                 self.parent().find("input").val(newVal);
                 self.closest("tr").find(".cart__total").html("$ " + data.Subtotal);
                 $("#totalSum").html("$ " + data.Total);
             },
             error: function(err) {
-                console.log(err);
+                // console.log(err);
+                alert("Sorry, something went wrong");
+            }
+        });
+    });
+
+    $(".cart__close").click(function () {
+        var self = $(this);
+        var cartID = self.closest("tr").data("cart");
+        var productID = self.closest("tr").data("product");
+        var data = {
+            cart_id: parseInt(cartID),
+            product_id: parseInt(productID),
+        };
+    
+        $.ajax({
+            url: "/cart/",
+            type: "DELETE",
+            contentType: "application/json",
+            data: JSON.stringify(data),
+            dataType: "json",
+            success: function(data) {
+                // console.log(data);
+                $("#totalSum").html("$ " + data.Total);
+                self.closest("tr").remove();
+            },
+            error: function(err) {
+                // console.log(err);
                 alert("Sorry, something went wrong");
             }
         });

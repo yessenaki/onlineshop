@@ -34,14 +34,21 @@ func Index() http.Handler {
 				return
 			}
 
+			var total int
+			for _, item := range items {
+				total = total + (item.Price * item.Quantity)
+			}
+
 			data := struct {
 				Header Header
 				Items  []Item
+				Total  string
 			}{
 				Header: Header{
 					Context: ctx,
 				},
 				Items: items,
+				Total: helper.PriceToString(total),
 			}
 
 			helper.Render(w, "cart.gohtml", data)
@@ -122,6 +129,44 @@ func Index() http.Handler {
 			}{
 				Subtotal: helper.PriceToString(subtotal),
 				Total:    helper.PriceToString(total),
+			}
+
+			j, err := json.Marshal(data)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.Write(j)
+		} else if r.Method == http.MethodDelete {
+			var uc UserCart
+			err := helper.DecodeJSONBody(w, r, &uc)
+			if err != nil {
+				var mr *helper.MalformedRequest
+				if errors.As(err, &mr) {
+					http.Error(w, mr.Msg, mr.Status)
+				} else {
+					log.Println(err.Error())
+					http.Error(w, err.Error(), http.StatusInternalServerError)
+				}
+				return
+			}
+
+			items, err := uc.deleteItem()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+
+			var total int
+			for _, item := range items {
+				total = total + (item.Price * item.Quantity)
+			}
+
+			data := struct {
+				Total string
+			}{
+				Total: helper.PriceToString(total),
 			}
 
 			j, err := json.Marshal(data)
