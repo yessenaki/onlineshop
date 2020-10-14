@@ -29,6 +29,17 @@ type Parent struct {
 	Childs []Category
 }
 
+func (ctg *Category) validate() bool {
+	ctg.Errors = make(map[string]string)
+	name := strings.TrimSpace(ctg.Name)
+
+	if name == "" || len(name) > 30 {
+		ctg.Errors["Name"] = "The field Name must be a string with a maximum length of 30"
+	}
+
+	return len(ctg.Errors) == 0
+}
+
 func ByParams(gender int, isKids int, ctgID int) ([]Parent, error) {
 	stm := "SELECT * FROM categories WHERE gender IN (2, $1) AND is_kids IN (2, $2) ORDER BY id"
 	rows, err := config.DB.Query(stm, gender, isKids)
@@ -78,17 +89,6 @@ func ByParams(gender int, isKids int, ctgID int) ([]Parent, error) {
 	return parents, nil
 }
 
-func (ctg *Category) validate() bool {
-	ctg.Errors = make(map[string]string)
-	name := strings.TrimSpace(ctg.Name)
-
-	if name == "" || len(name) > 30 {
-		ctg.Errors["Name"] = "The field Name must be a string with a maximum length of 30"
-	}
-
-	return len(ctg.Errors) == 0
-}
-
 func (ctg *Category) store() (int, error) {
 	var lastInsertedID int
 	stm := `INSERT INTO categories (name, parent_id, created_at, updated_at, gender, is_kids)
@@ -119,8 +119,8 @@ func (ctg *Category) destroy() error {
 
 func AllCategories() ([]Category, error) {
 	stm := `SELECT c1.*, c2.name as parent_name
-		FROM categories as c1
-		LEFT OUTER JOIN categories as c2
+		FROM categories AS c1
+		LEFT OUTER JOIN categories AS c2
 		ON c1.parent_id=c2.id
 		ORDER BY c1.id`
 
