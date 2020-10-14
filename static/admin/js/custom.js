@@ -49,4 +49,9 @@ $(document).ready(function() {
             }
         });
     });
+
+    if ($(location).attr("pathname").indexOf("admin/post") != -1) {
+        $("a[data-target='#blog']").trigger("click");
+        $("a[data-target='#blog']").parent().addClass("expand");
+    }
 });

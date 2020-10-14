@@ -7,6 +7,9 @@ import (
 	"onlineshop/admin/brand"
 	"onlineshop/admin/category"
 	"onlineshop/admin/color"
+	"onlineshop/admin/post"
+	pc "onlineshop/admin/post/category"
+	"onlineshop/admin/post/tag"
 	"onlineshop/admin/product"
 	"onlineshop/admin/size"
 	"onlineshop/app/blog"
@@ -36,6 +39,9 @@ func main() {
 	mux.Handle("/admin/brands/", override(brand.Handle()))
 	mux.Handle("/admin/sizes/", override(size.Handle()))
 	mux.Handle("/admin/colors/", override(color.Handle()))
+	mux.Handle("/admin/post-categories/", override(pc.Handle()))
+	mux.Handle("/admin/post-tags/", override(tag.Handle()))
+	mux.Handle("/admin/posts/", override(post.Handle()))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")

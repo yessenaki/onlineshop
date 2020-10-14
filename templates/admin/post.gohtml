@@ -1,0 +1,42 @@
+{{template "admin_header"}}
+<div class="content">
+    <div class="row">
+        <div class="col-12">
+            <div class="card card-default">
+                <div class="card-header card-header-border-bottom d-flex justify-content-between">
+                    <h2>Posts</h2>
+                    <a href="/admin/posts/?action=create" class="btn btn-outline-primary">Create</a>
+                </div>
+                <div class="card-body">
+                    <div class="basic-data-table">
+                        <table id="basic-data-table" class="table nowrap" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Post category</th>
+                                    <th>Created at</th>
+                                    <th>Updated at</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {{range .Posts}}
+                                <tr>
+                                    <td>{{.ID}}</td>
+                                    <td>
+                                        <a href="/admin/posts/?action=edit&id={{.ID}}">{{.Title}}</a>
+                                    </td>
+                                    <td>{{.CategoryName}}</td>
+                                    <td>{{fmtdt .CreatedAt}}</td>
+                                    <td>{{fmtdt .UpdatedAt}}</td>
+                                </tr>
+                                {{end}}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{template "admin_footer"}}

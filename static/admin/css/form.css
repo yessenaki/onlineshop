@@ -297,6 +297,14 @@
   width: 100%;
 }
 
+.single-form-image {
+  margin-top: 5px;
+}
+
+.single-form-image img {
+  height: 300px;
+}
+
 .form-image i {
   position: absolute;
   right: 3%;
