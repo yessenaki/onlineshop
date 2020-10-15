@@ -31,8 +31,8 @@
                                     <td>{{.ParentName}}</td>
                                     <td>{{if eq .Gender 0}}Male{{else if eq .Gender 1}}Female{{else}}Both{{end}}</td>
                                     <td>{{if eq .IsKids 0}}No{{else if eq .IsKids 1}}Yes{{else}}All{{end}}</td>
-                                    <td>{{fmtdt .CreatedAt}}</td>
-                                    <td>{{fmtdt .UpdatedAt}}</td>
+                                    <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                                    <td>{{.UpdatedAt.Format "2006-01-02 15:04:05"}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>

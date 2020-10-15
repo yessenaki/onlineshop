@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"onlineshop/admin/post/category"
+	"onlineshop/admin/post/tag"
 	"onlineshop/helper"
 	"os"
 	"path/filepath"
@@ -42,7 +43,6 @@ func Handle() http.Handler {
 func index(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	posts, err := findAll()
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -65,19 +65,29 @@ func create(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 		return
 	}
 
+	tags, err := tag.FindAll()
+	if err != nil {
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
 	data := struct {
 		Context    helper.ContextData
 		Categories []category.Category
+		Tags       []tag.Tag
 		Post       Post
 	}{
 		Context:    ctx,
 		Categories: ctgs,
+		Tags:       tags,
 	}
 	helper.Render(w, "post_form.gohtml", data)
 	return
 }
 
 func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
+	r.ParseForm()
+
 	ctgID, err := strconv.Atoi(r.FormValue("category_id"))
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
@@ -88,6 +98,8 @@ func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 		Title:      r.FormValue("title"),
 		Body:       r.FormValue("body"),
 		CategoryID: ctgID,
+		Tags:       r.Form["tags"],
+		Author:     r.FormValue("author"),
 	}
 
 	success, err := post.validate(r)
@@ -103,13 +115,21 @@ func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 			return
 		}
 
+		tags, err := tag.FindAll()
+		if err != nil {
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
 		data := struct {
 			Context    helper.ContextData
 			Categories []category.Category
+			Tags       []tag.Tag
 			Post       *Post
 		}{
 			Context:    ctx,
 			Categories: ctgs,
+			Tags:       tags,
 			Post:       post,
 		}
 		helper.Render(w, "post_form.gohtml", data)
@@ -118,7 +138,6 @@ func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 
 	m, err := uploadImage(r)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -128,7 +147,6 @@ func store(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 
 	_, err = post.store()
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -146,14 +164,18 @@ func edit(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 
 	ctgs, err := category.FindAll()
 	if err != nil {
-		log.Println(err)
+		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+		return
+	}
+
+	tags, err := tag.FindSelected(id)
+	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
 	post, err := findOne(id)
 	if err != nil {
-		log.Println(err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -161,10 +183,12 @@ func edit(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	data := struct {
 		Context    helper.ContextData
 		Categories []category.Category
+		Tags       []tag.Tag
 		Post       Post
 	}{
 		Context:    ctx,
 		Categories: ctgs,
+		Tags:       tags,
 		Post:       post,
 	}
 	helper.Render(w, "post_form.gohtml", data)
@@ -172,6 +196,7 @@ func edit(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 }
 
 func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
+	r.ParseForm()
 	id, _ := strconv.Atoi(r.FormValue("_id"))
 	ctgID, err := strconv.Atoi(r.FormValue("category_id"))
 	if err != nil {
@@ -183,12 +208,15 @@ func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 		ID:         id,
 		Title:      r.FormValue("title"),
 		Body:       r.FormValue("body"),
+		ImagePath:  r.FormValue("image_path"),
+		ImageName:  r.FormValue("image_name"),
 		CategoryID: ctgID,
+		Tags:       r.Form["tags"],
+		Author:     r.FormValue("author"),
 	}
 
 	success, err := post.validate(r)
 	if err != nil {
-		log.Println("s1", err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -196,7 +224,12 @@ func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	if success == false {
 		ctgs, err := category.FindAll()
 		if err != nil {
-			log.Println("s2", err)
+			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+			return
+		}
+
+		tags, err := tag.FindAll()
+		if err != nil {
 			http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 			return
 		}
@@ -204,10 +237,12 @@ func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 		data := struct {
 			Context    helper.ContextData
 			Categories []category.Category
+			Tags       []tag.Tag
 			Post       *Post
 		}{
 			Context:    ctx,
 			Categories: ctgs,
+			Tags:       tags,
 			Post:       post,
 		}
 		helper.Render(w, "post_form.gohtml", data)
@@ -216,7 +251,6 @@ func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 
 	m, err := uploadImage(r)
 	if err != nil {
-		log.Println("s3", err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
@@ -228,7 +262,6 @@ func update(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 
 	err = post.update()
 	if err != nil {
-		log.Println("s4", err)
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}

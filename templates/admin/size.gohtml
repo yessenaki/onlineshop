@@ -31,8 +31,8 @@
                                     {{else}}
                                     <td>Shoe</td>
                                     {{end}}
-                                    <td>{{fmtdt .CreatedAt}}</td>
-                                    <td>{{fmtdt .UpdatedAt}}</td>
+                                    <td>{{.CreatedAt.Format "2006-01-02 15:04:05"}}</td>
+                                    <td>{{.UpdatedAt.Format "2006-01-02 15:04:05"}}</td>
                                 </tr>
                                 {{end}}
                             </tbody>

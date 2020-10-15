@@ -14,6 +14,16 @@ type Tag struct {
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 	Errors    map[string]string
+	Selected  bool
+}
+
+// PostTagItem struct
+type PostTagItem struct {
+	ID        int       `db:"id"`
+	PostID    int       `db:"post_id"`
+	TagID     int       `db:"tag_id"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
 }
 
 func (t *Tag) validate() bool {
@@ -48,6 +58,64 @@ func FindAll() ([]Tag, error) {
 		return nil, err
 	}
 	return tags, nil
+}
+
+func FindSelected(postID int) ([]Tag, error) {
+	items, err := findPostTagItems(postID)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := config.DB.Query("SELECT * FROM post_tags ORDER BY name")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tags []Tag
+	for rows.Next() {
+		var tag Tag
+		err := rows.Scan(&tag.ID, &tag.Name, &tag.CreatedAt, &tag.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, item := range items {
+			if tag.ID == item.TagID {
+				tag.Selected = true
+				break
+			}
+		}
+
+		tags = append(tags, tag)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+func findPostTagItems(postID int) ([]PostTagItem, error) {
+	rows, err := config.DB.Query("SELECT * FROM post_tag_items WHERE post_id=$1", postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var items []PostTagItem
+	for rows.Next() {
+		var item PostTagItem
+		err := rows.Scan(&item.ID, &item.PostID, &item.TagID, &item.CreatedAt, &item.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		items = append(items, item)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 func findOne(id int) (Tag, error) {

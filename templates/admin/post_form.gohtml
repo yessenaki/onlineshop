@@ -38,12 +38,14 @@
                         </div>
                         <div class="form-group">
                             <label for="image">Image</label>
-                            <input type="file" class="form-control-file{{if .Post.Errors.Image}} is-invalid{{end}}" name="image" id="image">
-                            {{with .Post.Errors.Images}}
+                            <input type="file" class="form-control-file{{if .Post.Errors.ImagePath}} is-invalid{{end}}" name="image" id="image">
+                            {{with .Post.Errors.ImagePath}}
                             <div class="invalid-feedback">{{.}}</div>
                             {{end}}
                             {{if .Post.ImagePath}}
                             <div class="form-image-wrap">
+                                <input type="hidden" name="image_path" value="{{.Post.ImagePath}}">
+                                <input type="hidden" name="image_name" value="{{.Post.ImageName}}">
                                 <p>{{.Post.ImageName}}</p>
                                 <div class="single-form-image">
                                     <img src="{{.Post.ImagePath}}" alt="{{.Post.ImageName}}">
@@ -58,6 +60,26 @@
                                 <option value="{{.ID}}" {{if eq $.Post.CategoryID .ID}}selected{{end}}>{{.Name}}</option>
                                 {{end}}
                             </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="tags">Post tags</label>
+                            <select class="js-example-basic-multiple form-control{{if .Post.Errors.Tags}} is-invalid{{end}}" name="tags" multiple="multiple" id="tags">
+                                {{range .Tags}}
+                                <option value="{{.ID}}" {{if .Selected}}selected{{end}}>{{.Name}}</option>
+                                {{end}}
+                            </select>
+                            {{with .Post.Errors.Tags}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
+                        </div>
+                        <div class="form-group">
+                            <label for="author">Author</label>
+                            <input type="text" name="author" id="author" placeholder="Enter author"
+                                class="form-control{{if .Post.Errors.Author}} is-invalid{{end}}"
+                                {{with .Post.Author}}value="{{.}}"{{end}}>
+                            {{with .Post.Errors.Author}}
+                            <div class="invalid-feedback">{{.}}</div>
+                            {{end}}
                         </div>
                         <div class="form-footer pt-4 pt-5 mt-4 border-top">
                             <button type="submit" class="btn btn-primary btn-default">Submit</button>
