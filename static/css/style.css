@@ -2603,11 +2603,20 @@ ol {
 	height: 240px;
 }
 
+.blog__item__pic img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+    object-position: center top;
+}
+
 .blog__item__pic.large__item {
 	height: 540px;
 }
 
 .blog__item__text {
+	position: relative;
+	z-index: 1;
 	padding: 25px 20px 0 0;
 	margin-right: 30px;
 	background: #ffffff;

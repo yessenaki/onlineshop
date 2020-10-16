@@ -221,4 +221,57 @@
             }
         });
     });
+
+    $("#loadBtn").click(function (e) {
+        e.preventDefault();
+        var self = $(this);
+        var load = parseInt(self.data("load")) + 1
+
+        $.ajax({
+            url: "/blog/",
+            type: "POST",
+            data: {load: load},
+            dataType: "json",
+            success: function(data) {
+                // console.log(data);
+                if (data.Posts === null) {
+                    alert("No more posts");
+                    return
+                }
+
+                $.each(data.Posts, function(i, post) {
+                    var date = formatDatetime(post.CreatedAt);
+                    var block = `<div class="col-lg-4 col-md-4 col-sm-6">
+                        <div class="blog__item">
+                            <div class="blog__item__pic">
+                                <img src="${post.ImagePath}">
+                            </div>
+                            <div class="blog__item__text">
+                                <h6><a href="/post/?id=${post.ID}">${post.Title}</a></h6>
+                                <ul>
+                                    <li>by <span>${post.Author}</span></li>
+                                    <li>${date}</li>
+                                </ul>
+                            </div>
+                        <div>
+                    </div>`;
+
+                    $(block).insertBefore("#loadBtnWrap");
+                });
+
+                self.data("load", load);
+            },
+            error: function(err) {
+                // console.log(err);
+                alert("Sorry, something went wrong");
+            }
+        });
+    });
+
+    function formatDatetime(datetime) {
+        var date = new Date(datetime);  
+        var month = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        return month[date.getMonth()] + " " + date.getDate() + ", " + date.getFullYear();
+    }
 })(jQuery);

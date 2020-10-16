@@ -41,7 +41,7 @@ func Handle() http.Handler {
 }
 
 func index(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
-	posts, err := findAll()
+	posts, err := FindAll()
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
@@ -168,13 +168,13 @@ func edit(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 		return
 	}
 
-	tags, err := tag.FindSelected(id)
+	tags, err := tag.FindWithSelected(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
 	}
 
-	post, err := findOne(id)
+	post, err := FindOne(id)
 	if err != nil {
 		http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 		return
