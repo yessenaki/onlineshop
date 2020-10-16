@@ -13,6 +13,7 @@ type Category struct {
 	Name      string    `db:"name"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	PostQnt   int       `db:"post_qnt"`
 	Errors    map[string]string
 }
 

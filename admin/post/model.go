@@ -3,6 +3,8 @@ package post
 import (
 	"database/sql"
 	"net/http"
+	"onlineshop/admin/post/category"
+	"onlineshop/admin/post/tag"
 	"onlineshop/config"
 	"onlineshop/helper"
 	"strings"
@@ -16,13 +18,13 @@ type Post struct {
 	Body         string    `db:"body "`
 	ImagePath    string    `db:"image_path"`
 	CategoryID   int       `db:"category_id"`
-	CategoryName string    `db:"category_name"`
 	CreatedAt    time.Time `db:"created_at"`
 	UpdatedAt    time.Time `db:"updated_at"`
 	ImageName    string    `db:"image_name"`
 	Author       string    `db:"author"`
-	Errors       map[string]string
+	CategoryName string    `db:"category_name"`
 	Tags         []string
+	Errors       map[string]string
 }
 
 func (p *Post) validate(r *http.Request) (bool, error) {
@@ -67,7 +69,7 @@ func (p *Post) validate(r *http.Request) (bool, error) {
 	return (len(p.Errors) == 0), nil
 }
 
-func findAll() ([]Post, error) {
+func FindAll() ([]Post, error) {
 	stm := `SELECT p.*, pc.name AS category_name FROM posts AS p INNER JOIN post_categories AS pc ON p.category_id=pc.id ORDER BY id DESC`
 	rows, err := config.DB.Query(stm)
 	if err != nil {
@@ -117,10 +119,13 @@ func FindWithLimit(load int) ([]Post, error) {
 	return posts, nil
 }
 
-func findOne(id int) (Post, error) {
+func FindOne(id int) (Post, error) {
 	var post Post
-	row := config.DB.QueryRow("SELECT * FROM posts WHERE id=$1", id)
-	err := row.Scan(&post.ID, &post.Title, &post.Body, &post.ImagePath, &post.CategoryID, &post.CreatedAt, &post.UpdatedAt, &post.ImageName, &post.Author)
+	stm := `SELECT t1.*, t2.name as category_name FROM posts AS t1
+		INNER JOIN post_categories AS t2 ON t1.category_id=t2.id
+		WHERE t1.id=$1`
+	row := config.DB.QueryRow(stm, id)
+	err := row.Scan(&post.ID, &post.Title, &post.Body, &post.ImagePath, &post.CategoryID, &post.CreatedAt, &post.UpdatedAt, &post.ImageName, &post.Author, &post.CategoryName)
 	if err != nil && err != sql.ErrNoRows {
 		return post, err
 	}
@@ -175,4 +180,57 @@ func (p *Post) destroy() error {
 		return err
 	}
 	return nil
+}
+
+func FindTags(postID int) ([]tag.Tag, error) {
+	stm := `SELECT t2.* FROM post_tag_items AS t1
+		INNER JOIN post_tags AS t2 ON t1.tag_id=t2.id
+		WHERE t1.post_id=$1`
+	rows, err := config.DB.Query(stm, postID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tags []tag.Tag
+	for rows.Next() {
+		var tag tag.Tag
+		err := rows.Scan(&tag.ID, &tag.Name, &tag.CreatedAt, &tag.UpdatedAt)
+		if err != nil {
+			return nil, err
+		}
+
+		tags = append(tags, tag)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+func FindCategories() ([]category.Category, error) {
+	stm := `SELECT t1.*, count(t1.id) AS post_qnt FROM post_categories AS t1
+		INNER JOIN posts AS t2 ON t1.id=t2.category_id
+		GROUP BY t1.id
+		ORDER BY t1.name`
+	rows, err := config.DB.Query(stm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ctgs []category.Category
+	for rows.Next() {
+		var ctg category.Category
+		err := rows.Scan(&ctg.ID, &ctg.Name, &ctg.CreatedAt, &ctg.UpdatedAt, &ctg.PostQnt)
+		if err != nil {
+			return nil, err
+		}
+
+		ctgs = append(ctgs, ctg)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+	return ctgs, nil
 }

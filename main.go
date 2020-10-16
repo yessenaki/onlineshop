@@ -29,6 +29,7 @@ func main() {
 	mux.Handle("/cart/", cart.Index())
 	mux.Handle("/checkout/", cart.Checkout())
 	mux.Handle("/blog/", blog.Index())
+	mux.Handle("/post/", blog.Details())
 	mux.Handle("/contact/", contact.Index())
 	mux.Handle("/login/", user.Login())
 	mux.Handle("/logout/", user.Logout())

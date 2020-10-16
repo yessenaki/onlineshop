@@ -24,6 +24,7 @@ type PostTagItem struct {
 	TagID     int       `db:"tag_id"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	TagName   string    `db:"tag_name"`
 }
 
 func (t *Tag) validate() bool {
@@ -60,8 +61,8 @@ func FindAll() ([]Tag, error) {
 	return tags, nil
 }
 
-func FindSelected(postID int) ([]Tag, error) {
-	items, err := findPostTagItems(postID)
+func FindWithSelected(postID int) ([]Tag, error) {
+	items, err := FindPostTagItems(postID)
 	if err != nil {
 		return nil, err
 	}
@@ -95,8 +96,9 @@ func FindSelected(postID int) ([]Tag, error) {
 	return tags, nil
 }
 
-func findPostTagItems(postID int) ([]PostTagItem, error) {
-	rows, err := config.DB.Query("SELECT * FROM post_tag_items WHERE post_id=$1", postID)
+func FindPostTagItems(postID int) ([]PostTagItem, error) {
+	stm := `SELECT pti.*, pt.name AS tag_name FROM post_tag_items AS pti INNER JOIN post_tags AS pt ON pti.tag_id=pt.id WHERE pti.post_id=$1`
+	rows, err := config.DB.Query(stm, postID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +107,7 @@ func findPostTagItems(postID int) ([]PostTagItem, error) {
 	var items []PostTagItem
 	for rows.Next() {
 		var item PostTagItem
-		err := rows.Scan(&item.ID, &item.PostID, &item.TagID, &item.CreatedAt, &item.UpdatedAt)
+		err := rows.Scan(&item.ID, &item.PostID, &item.TagID, &item.CreatedAt, &item.UpdatedAt, &item.TagName)
 		if err != nil {
 			return nil, err
 		}
