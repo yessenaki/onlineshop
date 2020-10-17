@@ -25,7 +25,18 @@ func Index() http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
-			posts, err := post.FindWithLimit(1)
+			var ctgID int
+			var tagID int
+			if r.FormValue("ctg") != "" || r.FormValue("tag") != "" {
+				ctgID, _ = strconv.Atoi(r.FormValue("ctg"))
+				tagID, _ = strconv.Atoi(r.FormValue("tag"))
+				if ctgID <= 0 && tagID <= 0 {
+					http.Error(w, http.StatusText(404), http.StatusNotFound)
+					return
+				}
+			}
+
+			posts, err := post.FindWithLimit(1, ctgID, tagID)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return
@@ -34,12 +45,16 @@ func Index() http.Handler {
 			data := struct {
 				Header Header
 				Posts  []post.Post
+				CtgID  int
+				TagID  int
 			}{
 				Header: Header{
 					Context: helper.GetContextData(r.Context()),
 					Link:    "blog",
 				},
 				Posts: posts,
+				CtgID: ctgID,
+				TagID: tagID,
 			}
 
 			helper.Render(w, "blog.gohtml", data)
@@ -51,7 +66,10 @@ func Index() http.Handler {
 				return
 			}
 
-			posts, err := post.FindWithLimit(load)
+			ctgID, _ := strconv.Atoi(r.FormValue("ctgID"))
+			tagID, _ := strconv.Atoi(r.FormValue("tagID"))
+
+			posts, err := post.FindWithLimit(load, ctgID, tagID)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
 				return

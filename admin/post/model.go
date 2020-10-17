@@ -2,6 +2,7 @@ package post
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"onlineshop/admin/post/category"
 	"onlineshop/admin/post/tag"
@@ -93,10 +94,25 @@ func FindAll() ([]Post, error) {
 	return posts, nil
 }
 
-func FindWithLimit(load int) ([]Post, error) {
-	perLoad := 3
+func FindWithLimit(load int, ctgID int, tagID int) ([]Post, error) {
+	stm := "SELECT t2.* FROM post_tag_items AS t1 INNER JOIN posts AS t2 ON t1.post_id=t2.id"
+
+	if ctgID > 0 {
+		stm = fmt.Sprintf(stm+" WHERE t2.category_id=%d", ctgID)
+	}
+
+	if tagID > 0 {
+		if ctgID > 0 {
+			stm = fmt.Sprintf(stm+" AND t1.tag_id=%d", tagID)
+		} else {
+			stm = fmt.Sprintf(stm+" WHERE t1.tag_id=%d", tagID)
+		}
+	}
+
+	stm = stm + " GROUP BY t2.id ORDER BY t2.id DESC LIMIT $1 OFFSET $2"
+
+	perLoad := 1
 	offset := (load - 1) * perLoad
-	stm := `SELECT * FROM posts ORDER BY id DESC LIMIT $1 OFFSET $2`
 	rows, err := config.DB.Query(stm, perLoad, offset)
 	if err != nil {
 		return nil, err

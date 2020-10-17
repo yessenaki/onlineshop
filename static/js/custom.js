@@ -225,12 +225,18 @@
     $("#loadBtn").click(function (e) {
         e.preventDefault();
         var self = $(this);
-        var load = parseInt(self.data("load")) + 1
+        var load = parseInt(self.data("load")) + 1;
+        var ctgID = parseInt(self.data("ctg"));
+        var tagID = parseInt(self.data("tag"));
 
         $.ajax({
             url: "/blog/",
             type: "POST",
-            data: {load: load},
+            data: {
+                load: load,
+                ctgID: ctgID,
+                tagID: tagID
+            },
             dataType: "json",
             success: function(data) {
                 // console.log(data);
