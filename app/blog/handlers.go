@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 	"onlineshop/admin/post"
+	"onlineshop/admin/post/category"
+	"onlineshop/admin/post/tag"
 	"onlineshop/helper"
 	"strconv"
 )
@@ -73,5 +75,69 @@ func Index() http.Handler {
 			http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
 			return
 		}
+	})
+}
+
+func Details() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/post/" {
+			http.Error(w, http.StatusText(404), http.StatusNotFound)
+			return
+		}
+
+		if r.Method == http.MethodGet {
+			id, _ := strconv.Atoi(r.FormValue("id"))
+			if id <= 0 {
+				http.Error(w, http.StatusText(404), http.StatusNotFound)
+				return
+			}
+
+			p, err := post.FindOne(id)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			postTags, err := post.FindTags(p.ID)
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			ctgs, err := post.FindCategories()
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			tags, err := tag.FindAll()
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
+			data := struct {
+				Header     Header
+				Post       post.Post
+				PostTags   []tag.Tag
+				Categories []category.Category
+				Tags       []tag.Tag
+			}{
+				Header: Header{
+					Context: helper.GetContextData(r.Context()),
+					Link:    "blog",
+				},
+				Post:       p,
+				PostTags:   postTags,
+				Categories: ctgs,
+				Tags:       tags,
+			}
+
+			helper.Render(w, "blog_details.gohtml", data)
+			return
+		}
+
+		http.Error(w, http.StatusText(405), http.StatusMethodNotAllowed)
+		return
 	})
 }
