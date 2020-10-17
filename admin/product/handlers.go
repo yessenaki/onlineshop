@@ -71,6 +71,7 @@ func create(w http.ResponseWriter, r *http.Request, ctx helper.ContextData) {
 	type Data struct {
 		Context    helper.ContextData
 		Product    Product
+		Images     []file.File
 		Categories []category.Category
 		Brands     []brand.Brand
 		Colors     []color.Color

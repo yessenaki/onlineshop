@@ -3,6 +3,7 @@ package home
 import (
 	"io"
 	"net/http"
+	"onlineshop/admin/product"
 	"onlineshop/helper"
 )
 
@@ -20,13 +21,21 @@ func Index() http.Handler {
 		}
 
 		if r.Method == http.MethodGet {
+			prods, err := product.FindNew()
+			if err != nil {
+				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
+				return
+			}
+
 			data := struct {
 				Header Header
+				Prods  []product.Product
 			}{
 				Header: Header{
 					Context: helper.GetContextData(r.Context()),
 					Link:    "home",
 				},
+				Prods: prods,
 			}
 
 			helper.Render(w, "home.gohtml", data)

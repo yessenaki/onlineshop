@@ -251,3 +251,35 @@ func arrangeList(l string) string {
 	}
 	return nl
 }
+
+func FindNew() ([]Product, error) {
+	stm := `WITH images AS (SELECT DISTINCT ON (product_id) * FROM files ORDER BY product_id, id)
+		SELECT p.*, i.path AS image_path
+		FROM products AS p
+		INNER JOIN images AS i ON p.id=i.product_id
+		LIMIT 8`
+	rows, err := config.DB.Query(stm)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	prods := []Product{}
+	for rows.Next() {
+		prod := Product{}
+		err := rows.Scan(
+			&prod.ID, &prod.Title, &prod.Price, &prod.OldPrice, &prod.Gender, &prod.IsKids, &prod.IsNew, &prod.IsDiscount, &prod.DscPercent,
+			&prod.BrandID, &prod.ColorID, &prod.CategoryID, &prod.SizeID, &prod.CreatedAt, &prod.UpdatedAt, &prod.Description, &prod.ImagePath,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		prods = append(prods, prod)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return prods, nil
+}
