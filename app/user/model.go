@@ -21,6 +21,7 @@ type User struct {
 	Password  string    `db:"password"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
+	Role      int       `db:"role"`
 	Password2 string
 	Errors    map[string]string
 }
@@ -84,7 +85,7 @@ func (u *User) validate(isRgs bool) (bool, error) {
 
 func (u *User) create() (int, error) {
 	var id int
-	stm := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0)) RETURNING id"
+	stm := "INSERT INTO users (first_name, last_name, email, password, created_at, updated_at, role) VALUES ($1, $2, $3, $4, NOW()::timestamp(0), NOW()::timestamp(0), 0) RETURNING id"
 	err := config.DB.QueryRow(stm, u.FirstName, u.LastName, u.Email, u.Password).Scan(&id)
 	if err != nil {
 		return 0, err
@@ -95,7 +96,7 @@ func (u *User) create() (int, error) {
 func getExistingUser(email string) (User, error) {
 	var eu User // existing user
 	row := config.DB.QueryRow("SELECT * FROM users WHERE email=$1", email)
-	err := row.Scan(&eu.ID, &eu.FirstName, &eu.LastName, &eu.Email, &eu.Password, &eu.CreatedAt, &eu.UpdatedAt)
+	err := row.Scan(&eu.ID, &eu.FirstName, &eu.LastName, &eu.Email, &eu.Password, &eu.CreatedAt, &eu.UpdatedAt, &eu.Role)
 	if err != nil && err != sql.ErrNoRows {
 		return eu, err
 	}
@@ -147,7 +148,7 @@ func GetAuthUser(r *http.Request) (helper.Auth, error) {
 	}
 
 	row := config.DB.QueryRow("SELECT * FROM users WHERE id=(SELECT user_id FROM sessions WHERE session_id=$1)", cookie.Value)
-	err = row.Scan(&auth.ID, &auth.FirstName, &auth.LastName, &auth.Email, &auth.Password, &auth.CreatedAt, &auth.UpdatedAt)
+	err = row.Scan(&auth.ID, &auth.FirstName, &auth.LastName, &auth.Email, &auth.Password, &auth.CreatedAt, &auth.UpdatedAt, &auth.Role)
 	if err != nil && err != sql.ErrNoRows {
 		return auth, err
 	}

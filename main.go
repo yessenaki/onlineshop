@@ -34,15 +34,15 @@ func main() {
 	mux.Handle("/login/", user.Login())
 	mux.Handle("/logout/", user.Logout())
 	mux.Handle("/register/", user.Register())
-	mux.Handle("/admin/products/", override(product.Handle()))
-	mux.Handle("/admin/products/delete-image/", product.DeleteImage())
-	mux.Handle("/admin/categories/", override(category.Handle()))
-	mux.Handle("/admin/brands/", override(brand.Handle()))
-	mux.Handle("/admin/sizes/", override(size.Handle()))
-	mux.Handle("/admin/colors/", override(color.Handle()))
-	mux.Handle("/admin/post-categories/", override(pc.Handle()))
-	mux.Handle("/admin/post-tags/", override(tag.Handle()))
-	mux.Handle("/admin/posts/", override(post.Handle()))
+	mux.Handle("/admin/products/", admin(override(product.Handle())))
+	mux.Handle("/admin/products/delete-image/", admin(product.DeleteImage()))
+	mux.Handle("/admin/categories/", admin(override(category.Handle())))
+	mux.Handle("/admin/brands/", admin(override(brand.Handle())))
+	mux.Handle("/admin/sizes/", admin(override(size.Handle())))
+	mux.Handle("/admin/colors/", admin(override(color.Handle())))
+	mux.Handle("/admin/post-categories/", admin(override(pc.Handle())))
+	mux.Handle("/admin/post-tags/", admin(override(tag.Handle())))
+	mux.Handle("/admin/posts/", admin(override(post.Handle())))
 	mux.Handle("/assets/", http.StripPrefix("/assets/", http.FileServer(http.Dir("./static"))))
 
 	log.Println("Server running...")
@@ -71,6 +71,18 @@ func basic(next http.Handler) http.Handler {
 
 		ctx := context.WithValue(r.Context(), helper.ContextDataKey, cd)
 		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func admin(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := helper.GetContextData(r.Context())
+		if ctx.Auth.Role != 1 {
+			http.Error(w, http.StatusText(403), http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
 
