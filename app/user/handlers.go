@@ -14,7 +14,7 @@ const maxAge = 3600
 // Header struct
 type Header struct {
 	Context helper.ContextData
-	Link string
+	Link    string
 }
 
 func Login() http.Handler {
@@ -63,7 +63,7 @@ func Login() http.Handler {
 			}
 
 			// Generate a new uuid && create a new session in the db
-			sessionID, _ := uuid.NewV4()
+			sessionID := uuid.NewV4()
 			err = createSession(sessionID.String(), user.ID)
 			if err != nil {
 				log.Println(err)
@@ -155,7 +155,7 @@ func Register() http.Handler {
 			}
 
 			// Generate a new uuid && create a new session in the db
-			sessionID, _ := uuid.NewV4()
+			sessionID := uuid.NewV4()
 			err = createSession(sessionID.String(), userID)
 			if err != nil {
 				http.Error(w, http.StatusText(500), http.StatusInternalServerError)
