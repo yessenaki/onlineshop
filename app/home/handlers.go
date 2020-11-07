@@ -3,8 +3,8 @@ package home
 import (
 	"io"
 	"net/http"
-	"onlineshop/admin/product"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/admin/product"
+	"github.com/yesseneon/onlineshop/helper"
 )
 
 // Header struct

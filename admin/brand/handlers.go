@@ -2,8 +2,9 @@ package brand
 
 import (
 	"net/http"
-	"onlineshop/helper"
 	"strconv"
+
+	"github.com/yesseneon/onlineshop/helper"
 )
 
 func Handle() http.Handler {

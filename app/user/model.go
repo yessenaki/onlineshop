@@ -3,8 +3,8 @@ package user
 import (
 	"database/sql"
 	"net/http"
-	"onlineshop/config"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/config"
+	"github.com/yesseneon/onlineshop/helper"
 	"regexp"
 	"strings"
 	"time"

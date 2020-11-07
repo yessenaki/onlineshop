@@ -2,7 +2,7 @@ package color
 
 import (
 	"net/http"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/helper"
 	"strconv"
 )
 

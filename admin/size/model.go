@@ -2,8 +2,8 @@ package size
 
 import (
 	"database/sql"
-	"onlineshop/admin/category"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/admin/category"
+	"github.com/yesseneon/onlineshop/config"
 	"strings"
 	"time"
 )

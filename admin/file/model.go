@@ -1,7 +1,7 @@
 package file
 
 import (
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"time"
 )
 

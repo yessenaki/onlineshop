@@ -2,7 +2,7 @@ package category
 
 import (
 	"database/sql"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"strings"
 	"time"
 )

@@ -6,7 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/helper"
 )
 
 // Header struct

@@ -1,6 +1,6 @@
-module onlineshop
+module github.com/yesseneon/onlineshop
 
-go 1.14
+go 1.15
 
 require (
 	github.com/golang/gddo v0.0.0-20200831202555-721e228c7686

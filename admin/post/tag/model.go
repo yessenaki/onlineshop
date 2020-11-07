@@ -2,7 +2,7 @@ package tag
 
 import (
 	"database/sql"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"strings"
 	"time"
 )

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"strconv"
 	"strings"
 	"time"

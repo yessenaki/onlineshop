@@ -3,7 +3,7 @@ package user
 import (
 	"log"
 	"net/http"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/helper"
 
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"

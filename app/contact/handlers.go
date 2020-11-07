@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/smtp"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/helper"
 )
 
 // Header struct

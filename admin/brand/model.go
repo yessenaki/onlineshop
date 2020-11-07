@@ -2,7 +2,7 @@ package brand
 
 import (
 	"database/sql"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"strings"
 	"time"
 )

@@ -2,7 +2,7 @@ package cart
 
 import (
 	"database/sql"
-	"onlineshop/config"
+	"github.com/yesseneon/onlineshop/config"
 	"time"
 )
 

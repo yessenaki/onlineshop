@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"onlineshop/admin/post"
-	"onlineshop/admin/post/category"
-	"onlineshop/admin/post/tag"
-	"onlineshop/helper"
+	"github.com/yesseneon/onlineshop/admin/post"
+	"github.com/yesseneon/onlineshop/admin/post/category"
+	"github.com/yesseneon/onlineshop/admin/post/tag"
+	"github.com/yesseneon/onlineshop/helper"
 	"strconv"
 )
 
